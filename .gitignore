@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# IDE / Editor
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Skill local session files
+.execute-with-agy-session
