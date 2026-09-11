@@ -1,8 +1,9 @@
 # macOS
 .DS_Store
 
-# IDE / Editor
+# IDE / Editor / Tooling
 .idea/
+.claude/
 
 # Python
 __pycache__/
