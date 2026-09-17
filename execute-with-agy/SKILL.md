@@ -91,7 +91,13 @@ After inspection, classify the outcome into exactly one of three states:
 
 ### 1. `PASS`
 - All tasks implemented, tests pass, code meets quality standards.
-- **Action:** Conclude task and present completed results to the user.
+- **Action:** Present completed results and proactively guide next steps (Superpowers style):
+  1. **Summarize Verification:** Report that all plan requirements and tests have passed.
+  2. **Prompt Next Steps:** Actively ask the user how they would like to proceed with the Git workflow:
+     - **Option 1 (Push to Remote / PR):** Commit remaining changes (if any) and push to remote (`git push -u origin <branch>`).
+     - **Option 2 (Local Merge):** Merge the feature branch into the base branch locally (`git checkout main && git merge <branch>`).
+     - **Option 3 (Keep Local):** Leave changes as-is in the working tree for manual inspection.
+  3. Execute the selected Git operation upon user confirmation.
 
 ### 2. `NEEDS FIX`
 - Specific bugs, missing plan steps, test failures, or regressions found.
