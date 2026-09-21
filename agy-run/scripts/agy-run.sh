@@ -31,7 +31,7 @@ shift
 
 # Check agy CLI
 if ! command -v agy >/dev/null 2>&1; then
-  echo "[execute-with-agy] Error: 'agy' CLI is not found in PATH." >&2
+  echo "[agy-run] Error: 'agy' CLI is not found in PATH." >&2
   exit 127
 fi
 
@@ -45,13 +45,13 @@ case "$ACTION" in
 
   imp)
     if [ $# -lt 1 ] || [ -z "${1:-}" ]; then
-      echo "[execute-with-agy] Error: 'imp' requires a plan file path." >&2
+      echo "[agy-run] Error: 'imp' requires a plan file path." >&2
       echo "Usage: ./scripts/agy-run.sh imp path/to/plan.md" >&2
       exit 1
     fi
     PLAN_FILE="$1"
     if [ ! -f "$PLAN_FILE" ]; then
-      echo "[execute-with-agy] Error: Plan file not found: $PLAN_FILE" >&2
+      echo "[agy-run] Error: Plan file not found: $PLAN_FILE" >&2
       exit 1
     fi
     echo "=== Running AGY Plan Implementation ==="
@@ -61,7 +61,7 @@ case "$ACTION" in
 
   fix)
     if [ $# -lt 1 ] || [ -z "${1:-}" ]; then
-      echo "[execute-with-agy] Error: 'fix' requires an issue description." >&2
+      echo "[agy-run] Error: 'fix' requires an issue description." >&2
       echo "Usage: ./scripts/agy-run.sh fix \"description of issue\"" >&2
       exit 1
     fi
@@ -72,7 +72,7 @@ case "$ACTION" in
     ;;
 
   *)
-    echo "[execute-with-agy] Error: Unknown command '$ACTION'." >&2
+    echo "[agy-run] Error: Unknown command '$ACTION'." >&2
     show_help >&2
     exit 1
     ;;
@@ -83,7 +83,7 @@ CMD=(agy --mode accept-edits --dangerously-skip-permissions --output-format json
 TMP_OUT="$(mktemp -t agy-out.XXXXXX)"
 trap 'rm -f "$TMP_OUT"' EXIT
 
-echo "[execute-with-agy] Running AGY..."
+echo "[agy-run] Running AGY..."
 AGY_EXIT=0
 "${CMD[@]}" > "$TMP_OUT" || AGY_EXIT=$?
 

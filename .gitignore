@@ -9,6 +9,3 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Skill local session files
-.execute-with-agy-session

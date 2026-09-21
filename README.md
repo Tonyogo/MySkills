@@ -10,14 +10,14 @@
 
 | 技能名称 | 核心职责 | 适用场景 | 关键依赖 / 工具 | 文档入口 |
 | :--- | :--- | :--- | :--- | :--- |
-| **`execute-with-agy`** | **跨 Agent 协同实现**<br>Claude Code 规划/审查 ➔ AGY CLI 自主执行与测试 | 需求/架构计划已由 Superpowers 生成，需转交 AGY 自动写代码、跑测试、修复问题 | `agy` CLI, Bash, Git | [README / SKILL.md](./execute-with-agy/SKILL.md) |
+| **`agy-run`** | **跨 Agent 协同实现**<br>Claude Code 规划/审查 ➔ AGY CLI 自主执行与测试 | 需求/架构计划已由 Superpowers 生成，需转交 AGY 自动写代码、跑测试、修复问题 | `agy` CLI, Bash, Git | [README / SKILL.md](./agy-run/SKILL.md) |
 | **`man-system`** | **全栈链路追踪与排障**<br>微前端/网关/核心微服务/MQ 跨层定位 | 业务异常排查（如点击无响应、路由丢失、事务回滚、MQ 掉消息）、服务地图生成 | Python 3, 正则扫描器 | [README / SKILL.md](./man-system/SKILL.md) |
 
 ---
 
 ## 📦 技能详解
 
-### 1. `execute-with-agy`：Claude Code 与 AGY 协作实现技能
+### 1. `agy-run`：Claude Code 与 AGY 协作实现技能
 
 该技能将复杂开发任务划分为**规划**、**实施**与**审查**三个明确边界，由 Claude Code 负责架构规划与验收，AGY CLI 负责自主编写代码并驱动测试闭环：
 
@@ -40,12 +40,11 @@ Planning Agent (Superpowers)       AGY (Implementation)       Claude Code (Revie
   - **Superpowers / Planner**：决定 *What to build*（需求分解、架构设计、输出 Implementation Plan）。
   - **AGY CLI**：决定 *How to implement*（读写文件、依赖安装、运行测试、自查自纠、符合规范的 Commit）。
   - **Claude Code**：负责 *Independent Review*（对照计划、Git Diff、测试覆盖率进行客观验收）。
-- **三态验收标准**：
-  - `PASS`：实现完整，测试通过，结束任务。
-  - `NEEDS FIX`：提供精确到行和报错的反馈，调用 `--fix` 恢复 AGY 会话进行增量修复。
-  - `FAILED`：遇到环境致命阻断或根本性架构分歧，主动升级至用户决策。
-- **轻量 Runner 引擎**：
-  - 核心脚本 [`scripts/agy-run.sh`](./execute-with-agy/scripts/agy-run.sh) 支持计划文件自动发现（`docs/superpowers/plans/`、`docs/plans/`、`plans/`）、`-y` 非交互自动授权以及轻量级会话 ID 持久化。
+- **轻量极简双命令**：
+  - **`imp <plan.md>`**：利用 AGY 原生 `/goal` 深度实现指定计划文件，自带完整性自审机制。
+  - **`fix "<issue>"`**：利用 AGY 原生 `/boost` 对 Review 发现的具体缺陷进行高强度定向修复。
+- **即插即用 Runner 引擎**：
+  - 核心脚本 [`scripts/agy-run.sh`](./agy-run/scripts/agy-run.sh) 提供严格的参数校验、执行耗时汇总以及自动化的 Git Status、Diff 统计与后续操作引导。
 
 ---
 
@@ -79,8 +78,8 @@ UI 点击 ──► 微前端路由 ──► API 网关 ──► 核心微服�
 ```bash
 mkdir -p ~/.claude/skills
 
-# 挂载 execute-with-agy
-ln -sfn /path/to/MySkills/execute-with-agy ~/.claude/skills/execute-with-agy
+# 挂载 agy-run
+ln -sfn /path/to/MySkills/agy-run ~/.claude/skills/agy-run
 
 # 挂载 man-system
 ln -sfn /path/to/MySkills/man-system ~/.claude/skills/man-system
@@ -91,7 +90,7 @@ ln -sfn /path/to/MySkills/man-system ~/.claude/skills/man-system
 
 ```bash
 mkdir -p .claude/skills
-ln -sfn /path/to/MySkills/execute-with-agy .claude/skills/execute-with-agy
+ln -sfn /path/to/MySkills/agy-run .claude/skills/agy-run
 ```
 
 ---
@@ -107,7 +106,7 @@ Antigravity 原生支持基于目录层级的自动发现与技能渐进式加�
 mkdir -p ~/.gemini/config/skills
 
 # 挂载技能
-ln -sfn /path/to/MySkills/execute-with-agy ~/.gemini/config/skills/execute-with-agy
+ln -sfn /path/to/MySkills/agy-run ~/.gemini/config/skills/agy-run
 ln -sfn /path/to/MySkills/man-system ~/.gemini/config/skills/man-system
 ```
 
@@ -116,7 +115,7 @@ ln -sfn /path/to/MySkills/man-system ~/.gemini/config/skills/man-system
 
 ```bash
 mkdir -p .agents/skills
-ln -sfn /path/to/MySkills/execute-with-agy .agents/skills/execute-with-agy
+ln -sfn /path/to/MySkills/agy-run .agents/skills/agy-run
 ```
 
 ---
