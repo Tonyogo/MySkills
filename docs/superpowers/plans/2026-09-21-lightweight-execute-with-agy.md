@@ -32,7 +32,7 @@
   - `agy-run.sh fix "<issue_description>"`
   - `agy-run.sh -h | --help`
 
-- [ ] **Step 1: Write test script to verify `agy-run.sh` CLI argument behavior**
+- [x] **Step 1: Write test script to verify `agy-run.sh` CLI argument behavior**
 
 Create a temporary test script or run bash checks to assert that:
 1. Running with `-h` or `--help` prints usage.
@@ -42,7 +42,7 @@ Create a temporary test script or run bash checks to assert that:
 5. Running `fix` without issue text exits with error.
 6. Unknown commands exit with error.
 
-- [ ] **Step 2: Run verification against current `agy-run.sh` to confirm current failure/mismatch**
+- [x] **Step 2: Run verification against current `agy-run.sh` to confirm current failure/mismatch**
 
 Run:
 ```bash
@@ -50,7 +50,7 @@ Run:
 ```
 Expected: Current script fails or misparses `imp` as a plan file.
 
-- [ ] **Step 3: Implement new `agy-run.sh`**
+- [x] **Step 3: Implement new `agy-run.sh`**
 
 Replace `execute-with-agy/scripts/agy-run.sh` with the streamlined logic:
 
@@ -195,7 +195,7 @@ fi
 exit "$AGY_EXIT"
 ```
 
-- [ ] **Step 4: Verify test scenarios pass**
+- [x] **Step 4: Verify test scenarios pass**
 
 Run verification tests:
 ```bash
@@ -207,7 +207,7 @@ Run verification tests:
 ```
 Expected: All exit cleanly with corresponding error messages.
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
 
 ```bash
 git add execute-with-agy/scripts/agy-run.sh
@@ -224,7 +224,7 @@ git commit -m "feat(execute-with-agy): streamline agy-run.sh with imp and fix su
 **Interfaces:**
 - Produces: Concise skill documentation reflecting the new `imp` and `fix` workflows.
 
-- [ ] **Step 1: Draft the concise `SKILL.md` content**
+- [x] **Step 1: Draft the concise `SKILL.md` content**
 
 Update `execute-with-agy/SKILL.md` to:
 
@@ -266,15 +266,15 @@ Fix specific bugs or test failures discovered during review:
 4. **Complete:** Review final Git status/diff and proceed with commit/push/merge.
 ```
 
-- [ ] **Step 2: Update `execute-with-agy/SKILL.md`**
+- [x] **Step 2: Update `execute-with-agy/SKILL.md`**
 
 Write the new content to `execute-with-agy/SKILL.md`.
 
-- [ ] **Step 3: Verify document completeness**
+- [x] **Step 3: Verify document completeness**
 
 Check that file is clean, links/commands are accurate, and formatting is intact.
 
-- [ ] **Step 4: Commit changes**
+- [x] **Step 4: Commit changes**
 
 ```bash
 git add execute-with-agy/SKILL.md
