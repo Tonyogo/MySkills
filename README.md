@@ -1,6 +1,6 @@
 # 🚀 MySkills - AI 智能体扩展技能库
 
-**MySkills** 是一个面向现代化 AI 编程助手（如 **Claude Code**、**Google Antigravity / AGY** 等）的通用技能（Agent Skills）中枢。
+**MySkills** 是一个面向现代化 AI 编程助手（如 **Claude Code**、**OpenAI Codex**、**Google Antigravity / AGY** 等）的通用技能（Agent Skills）中枢。
 
 通过遵循统一的技能规范（`SKILL.md` 与渐进式披露机制），本项目封装了跨智能体协同开发、全栈微服务链路追踪、故障自动化诊断等高阶工程能力，让智能体从基础的代码生成工具跃升为具备自主工程实施与系统排障能力的专业结对工程师。
 
@@ -10,28 +10,28 @@
 
 | 技能名称 | 核心职责 | 适用场景 | 关键依赖 / 工具 | 文档入口 |
 | :--- | :--- | :--- | :--- | :--- |
-| **`agy-run`** | **跨 Agent 协同实现**<br>Claude Code 规划/审查 ➔ AGY CLI 自主执行与测试 | 需求/架构计划已由 Superpowers 生成，需转交 AGY 自动写代码、跑测试、多轮迭代完成 | `agy` CLI, Bash, Git | [README / SKILL.md](./agy-run/SKILL.md) |
+| **`agy-run`** | **跨 Agent 协同实现**<br>Claude Code / Codex 规划审查 ➔ AGY CLI 自主执行与测试 | 需求/架构计划已由 Superpowers 生成，转交 AGY 自动编写代码、跑测试并多轮迭代完成 | `agy` CLI, Bash, Git | [README / SKILL.md](./agy-run/SKILL.md) |
 | **`man-system`** | **全栈链路追踪与排障**<br>微前端/网关/核心微服务/MQ 跨层定位 | 业务异常排查（如点击无响应、路由丢失、事务回滚、MQ 掉消息）、服务地图生成 | Python 3, 正则扫描器 | [README / SKILL.md](./man-system/SKILL.md) |
 
 ---
 
 ## 📦 技能详解
 
-### 1. `agy-run`：Claude Code 与 AGY 协作实现技能
+### 1. `agy-run`：Claude Code / Codex 与 AGY 协作实现技能
 
-该技能将复杂开发任务划分为**规划**、**实施**与**审查**三个明确边界，由 Claude Code 负责架构规划与验收，AGY CLI 负责自主编写代码并驱动测试闭环：
+该技能将复杂开发任务划分为**规划**、**实施**与**审查**三个明确边界，由外部审查 Agent（Claude Code / Codex 等）负责架构规划与验收，AGY CLI 负责自主编写代码并驱动测试闭环：
 
 ```text
-Planning Agent (Superpowers)       AGY (Implementation)       Claude Code (Reviewer)
-      [ What to build ]            [ How to implement ]        [ Verify & Quality ]
-             │                              │                           │
-      Generate Plan ───────────────────────►│                           │
-                                      IMPLEMENT + TEST ────────────────►│
-                                                                   REVIEW DIFF
-                                            │                      ┌────┴────┐
-                                            │                    PASS     NEEDS FIX
-                                            │                      │         │
-                                            │◄── Feedback / Continue ───────┘
+Planning Agent (Superpowers)       AGY (Implementation)       Reviewer Agent (Claude/Codex)
+      [ What to build ]            [ How to implement ]            [ Verify & Quality ]
+             │                              │                               │
+      Generate Plan ───────────────────────►│                               │
+                                      IMPLEMENT + TEST ────────────────────►│
+                                                                       REVIEW DIFF
+                                            │                          ┌────┴────┐
+                                            │                        PASS     NEEDS FIX
+                                            │                          │         │
+                                            │◄── Feedback / Continue ──┴─────────┘
                                     CONTINUE + RE-TEST
 ```
 
@@ -39,7 +39,7 @@ Planning Agent (Superpowers)       AGY (Implementation)       Claude Code (Revie
 - **三方职责对齐**：
   - **Superpowers / Planner**：决定 *What to build*（需求分解、架构设计、输出 Implementation Plan）。
   - **AGY CLI**：决定 *How to implement*（读写文件、依赖安装、运行测试、自查自纠、符合规范的 Commit）。
-  - **Reviewer Agent (Claude Code / Antigravity)**：负责 *Independent Review*（执行 4 层门禁验收：执行健康度、Plan 任务勾选、自动化测试运行与 Git Diff 代码审查，自主驱动 continue 闭环）。
+  - **Reviewer Agent (Claude Code / Codex 等)**：负责 *Independent Review*（执行 4 层门禁验收：执行健康度、Plan 任务勾选、自动化测试运行与 Git Diff 代码审查，自主驱动 continue 闭环）。
 - **轻量极简双命令**：
   - **`imp <plan.md>`**：利用 AGY 原生 `/goal` 深度实现指定计划文件，自带完整性自审机制。
   - **`continue [instructions...]`**：利用 AGY 原生 `-c` 自动续接最近一次会话，支持多轮反馈闭环与自查补全，实现全自主迭代完成。
@@ -71,6 +71,7 @@ UI 点击 ──► 微前端路由 ──► API 网关 ──► 核心微服�
 你可以将本仓库中的技能接入到本地常用的 AI 智能体开发环境中：
 
 ### 方式一：接入 Claude Code
+适合使用 Claude Code 作为主控 Agent，调用 `agy-run` 驱动 AGY CLI 编写代码，或调用 `man-system` 进行全栈排障：
 
 #### 1. 全局生效（推荐）
 将目标技能软链接到 Claude Code 的全局技能配置目录（`~/.claude/skills/`）：
@@ -78,10 +79,8 @@ UI 点击 ──► 微前端路由 ──► API 网关 ──► 核心微服�
 ```bash
 mkdir -p ~/.claude/skills
 
-# 挂载 agy-run
+# 挂载技能
 ln -sfn /path/to/MySkills/agy-run ~/.claude/skills/agy-run
-
-# 挂载 man-system
 ln -sfn /path/to/MySkills/man-system ~/.claude/skills/man-system
 ```
 
@@ -91,13 +90,39 @@ ln -sfn /path/to/MySkills/man-system ~/.claude/skills/man-system
 ```bash
 mkdir -p .claude/skills
 ln -sfn /path/to/MySkills/agy-run .claude/skills/agy-run
+ln -sfn /path/to/MySkills/man-system .claude/skills/man-system
 ```
 
 ---
 
-### 方式二：接入 Google Antigravity (AGY)
+### 方式二：接入 OpenAI Codex / 通用 Agent 终端
+适合使用 OpenAI Codex 或支持 Agent Skills 规范的终端工具：
 
-Antigravity 原生支持基于目录层级的自动发现与技能渐进式加载（Progressive Disclosure）：
+#### 1. 全局生效
+软链接到 Codex 全局技能配置目录（`~/.codex/skills/`）：
+
+```bash
+mkdir -p ~/.codex/skills
+
+# 挂载技能
+ln -sfn /path/to/MySkills/agy-run ~/.codex/skills/agy-run
+ln -sfn /path/to/MySkills/man-system ~/.codex/skills/man-system
+```
+
+#### 2. 当前工程独享
+在项目根目录下创建 `.codex/skills/` 并软链接：
+
+```bash
+mkdir -p .codex/skills
+ln -sfn /path/to/MySkills/agy-run .codex/skills/agy-run
+ln -sfn /path/to/MySkills/man-system .codex/skills/man-system
+```
+
+---
+
+### 方式三：接入 Google Antigravity (AGY)
+> [!NOTE]
+> `man-system`（全栈排障）完全支持在 Antigravity 中原生运行。而 `agy-run` 专用于外部 Agent（如 Claude Code / Codex）调度驱动 AGY CLI，在 Antigravity 内部无需载入。
 
 #### 1. 全局配置
 软链接到 Antigravity 全局配置目录：
@@ -105,8 +130,7 @@ Antigravity 原生支持基于目录层级的自动发现与技能渐进式加�
 ```bash
 mkdir -p ~/.gemini/config/skills
 
-# 挂载技能
-ln -sfn /path/to/MySkills/agy-run ~/.gemini/config/skills/agy-run
+# 挂载 man-system 全栈排障技能
 ln -sfn /path/to/MySkills/man-system ~/.gemini/config/skills/man-system
 ```
 
@@ -115,7 +139,7 @@ ln -sfn /path/to/MySkills/man-system ~/.gemini/config/skills/man-system
 
 ```bash
 mkdir -p .agents/skills
-ln -sfn /path/to/MySkills/agy-run .agents/skills/agy-run
+ln -sfn /path/to/MySkills/man-system .agents/skills/man-system
 ```
 
 ---

@@ -47,7 +47,7 @@ case "$ACTION" in
   imp)
     if [ $# -lt 1 ] || [ -z "${1:-}" ]; then
       echo "[agy-run] Error: 'imp' requires a plan file path." >&2
-      echo "Usage: ./scripts/agy-run.sh imp path/to/plan.md" >&2
+      echo "Usage: $0 imp path/to/plan.md" >&2
       exit 1
     fi
     PLAN_FILE="$1"

@@ -13,17 +13,21 @@ Orchestrate end-to-end plan implementation with **AGY CLI** (`/goal` and `-c`) u
 The skill establishes a closed-loop pair-programming paradigm:
 - **Planner**: Specifies *What to build* (Structured Implementation Plan).
 - **AGY CLI**: Executes *How to implement* (Autonomous code editing and local testing via `/goal`).
-- **Reviewer Agent**: Conducts *Independent 4-Gate Review* and drives iterative completion via `continue` until 100% verified.
+- **Reviewer Agent (Claude Code, OpenAI Codex, etc.)**: Conducts *Independent 4-Gate Review* and drives iterative completion via `continue` until 100% verified.
 
 ---
 
 ## 📍 Locating the Runner Script
 
-Resolve the path to `agy-run.sh` based on your execution environment:
-- **Local repository**: `agy-run/scripts/agy-run.sh`
-- **Workspace-level skill**: `.agents/skills/agy-run/scripts/agy-run.sh`
-- **Antigravity global**: `~/.gemini/config/skills/agy-run/scripts/agy-run.sh`
-- **Claude Code global**: `~/.claude/skills/agy-run/scripts/agy-run.sh`
+Following the Superpowers skill discovery pattern, resolve `<SCRIPT_PATH>` using **local workspace priority** with **host agent global fallback**:
+
+1. **Local Workspace (Priority)**:
+   - Repository-local: `./agy-run/scripts/agy-run.sh`
+   - Project-level Claude: `./.claude/skills/agy-run/scripts/agy-run.sh`
+   - Project-level Codex: `./.codex/skills/agy-run/scripts/agy-run.sh`
+2. **Host Agent Global (Fallback)**:
+   - Claude Code: `~/.claude/skills/agy-run/scripts/agy-run.sh`
+   - OpenAI Codex: `~/.codex/skills/agy-run/scripts/agy-run.sh`
 
 *(In the instructions below, `<SCRIPT_PATH>` refers to the resolved path above).*
 
