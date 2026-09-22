@@ -1,35 +1,39 @@
 ---
 name: agy-run
-description: Hand off an existing implementation plan to AGY CLI for autonomous execution via /goal or fix issues via /boost, then review via Claude Code.
+description: Hand off an existing implementation plan to AGY CLI for autonomous execution via /goal and iterative multi-turn completion via continue, then review via Claude Code.
 ---
 
 # agy-run
 
-Lightweight skill to orchestrate code implementation and issue fixes using **AGY CLI** (`/goal` and `/boost`).
+Lightweight skill to orchestrate autonomous implementation plan execution using **AGY CLI** (`/goal`) with multi-turn completion support.
 
 ## Commands
 
 Run the runner script (adjust to `~/.claude/skills/...` if installed globally):
 
 ### 1. Implement Plan (`imp`)
-Execute a written implementation plan:
+Start executing a written implementation plan:
 ```bash
 .claude/skills/agy-run/scripts/agy-run.sh imp path/to/plan.md
 ```
 *Prompt passed to AGY:* `/goal Implement Plan @path/to/plan.md`
 
-### 2. Fix Issues (`fix`)
-Fix specific bugs or test failures discovered during review:
+### 2. Continue Plan Execution (`continue`)
+Continue the plan to complete remaining tasks or provide feedback on issues found during review:
 ```bash
-.claude/skills/agy-run/scripts/agy-run.sh fix "description of issue to fix"
+# Continue without extra instructions:
+.claude/skills/agy-run/scripts/agy-run.sh continue
+
+# Continue with specific feedback or remaining task instructions:
+.claude/skills/agy-run/scripts/agy-run.sh continue "Task 3 tests are failing; fix the assert issue"
 ```
-*Prompt passed to AGY:* `/boost Fix description of issue to fix`
+*Resumes the exact conversation ID stored in `.agy-session` (or falls back to `-c`).*
 
 ---
 
-## Workflow
+## Multi-Turn Workflow
 
-1. **Implement:** Run `agy-run.sh imp <plan_file>`.
-2. **Review:** Inspect the generated changes with `git diff` and run verification tests.
-3. **Fix (if needed):** If any issue is found, run `agy-run.sh fix "<issue>"`.
-4. **Complete:** Review final Git status/diff and proceed with commit/push/merge.
+1. **Start:** Run `agy-run.sh imp <plan_file>`.
+2. **Review:** Inspect the generated changes with `git diff` and check test results.
+3. **Continue (if incomplete or bugs found):** Run `agy-run.sh continue ["feedback..."]` to let AGY finish remaining tasks.
+4. **Complete:** Once all tasks and tests pass, review the final Git summary and proceed with commit/push.
