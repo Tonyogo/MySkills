@@ -42,7 +42,7 @@ Planning Agent (Superpowers)       AGY (Implementation)       Claude Code (Revie
   - **Claude Code**：负责 *Independent Review*（对照计划、Git Diff、测试覆盖率进行客观验收）。
 - **轻量极简双命令**：
   - **`imp <plan.md>`**：利用 AGY 原生 `/goal` 深度实现指定计划文件，自带完整性自审机制。
-  - **`continue [instructions...]`**：支持多轮会话恢复与反馈闭环（会话持久化在 `.agy-session`，自动容错降级），实现全自主迭代完成。
+  - **`continue [instructions...]`**：利用 AGY 原生 `-c` 自动续接最近一次会话，支持多轮反馈闭环与自查补全，实现全自主迭代完成。
 - **即插即用 Runner 引擎**：
   - 核心脚本 [`scripts/agy-run.sh`](./agy-run/scripts/agy-run.sh) 提供严格的参数校验、执行耗时汇总以及自动化的 Git Status、Diff 统计与后续操作引导。
 

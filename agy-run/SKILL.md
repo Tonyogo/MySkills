@@ -27,7 +27,7 @@ Continue the plan to complete remaining tasks or provide feedback on issues foun
 # Continue with specific feedback or remaining task instructions:
 .claude/skills/agy-run/scripts/agy-run.sh continue "Task 3 tests are failing; fix the assert issue"
 ```
-*Resumes the exact conversation ID stored in `.agy-session` (or falls back to `-c`).*
+*Resumes the most recent AGY conversation via `-c`.*
 
 ---
 

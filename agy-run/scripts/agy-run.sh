@@ -9,8 +9,6 @@
 
 set -uo pipefail
 
-SESSION_FILE=".agy-session"
-
 show_help() {
   cat <<'EOF'
 Usage:
@@ -37,16 +35,8 @@ if ! command -v agy >/dev/null 2>&1; then
   exit 127
 fi
 
-# Ensure session file is excluded from git if in a git repo
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || true)"
-  if [ -n "$GIT_DIR" ] && [ -d "$GIT_DIR/info" ]; then
-    grep -q "^\.agy-session" "$GIT_DIR/info/exclude" 2>/dev/null || echo ".agy-session" >> "$GIT_DIR/info/exclude"
-  fi
-fi
-
 PROMPT=""
-SESSION_ARGS=()
+CMD_EXTRA_ARGS=()
 
 case "$ACTION" in
   -h|--help|help)
@@ -72,19 +62,8 @@ case "$ACTION" in
 
   continue)
     INSTRUCTIONS="$*"
-    if [ -f "$SESSION_FILE" ] && [ -s "$SESSION_FILE" ]; then
-      CONV_ID="$(head -n 1 "$SESSION_FILE" | tr -d '[:space:]')"
-    else
-      CONV_ID=""
-    fi
-
-    if [ -n "$CONV_ID" ]; then
-      echo "=== Continuing AGY Session: $CONV_ID ==="
-      SESSION_ARGS+=(--conversation "$CONV_ID")
-    else
-      echo "=== Continuing AGY Session: (fallback to last conversation -c) ==="
-      SESSION_ARGS+=(-c)
-    fi
+    echo "=== Continuing Most Recent AGY Session (-c) ==="
+    CMD_EXTRA_ARGS+=(-c)
 
     if [ -z "$INSTRUCTIONS" ]; then
       PROMPT="Continue implementing the plan. Check current progress, finish all remaining tasks, and ensure all tests pass."
@@ -102,7 +81,7 @@ case "$ACTION" in
 esac
 
 CMD=(agy --mode accept-edits --print-timeout "${AGY_TIMEOUT:-30m}" --output-format json)
-[ ${#SESSION_ARGS[@]} -gt 0 ] && CMD+=("${SESSION_ARGS[@]}")
+[ ${#CMD_EXTRA_ARGS[@]} -gt 0 ] && CMD+=("${CMD_EXTRA_ARGS[@]}")
 CMD+=(-p "$PROMPT")
 
 TMP_OUT="$(mktemp -t agy-out.XXXXXX)"
@@ -113,7 +92,7 @@ echo "[agy-run] Executing: ${CMD_STR% }"
 AGY_EXIT=0
 "${CMD[@]}" > "$TMP_OUT" || AGY_EXIT=$?
 
-# Parse output and save conversation ID
+# Parse output and display summary
 if [ -s "$TMP_OUT" ]; then
   python3 -c '
 import json, sys
@@ -121,9 +100,6 @@ try:
     with open(sys.argv[1]) as f:
         data = json.load(f)
     cid = data.get("conversation_id", "")
-    if cid:
-        with open(sys.argv[2], "w") as sf:
-            sf.write(cid + "\n")
     status = data.get("status", "UNKNOWN")
     duration = data.get("duration_seconds", 0)
     print("\n" + "=" * 60)
@@ -136,7 +112,7 @@ try:
 except Exception:
     with open(sys.argv[1]) as f:
         print(f.read())
-' "$TMP_OUT" "$SESSION_FILE"
+' "$TMP_OUT"
 fi
 
 # Post-Execution Git Summary & Next Steps
