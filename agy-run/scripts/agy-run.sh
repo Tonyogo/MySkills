@@ -1,23 +1,25 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# agy-run.sh - Lightweight runner for AGY execution
+# agy-run.sh - Multi-turn runner for AGY plan execution
 #
 # Commands:
-#   imp <plan.md>      - Execute implementation plan via /goal
-#   fix "<issue>"      - Fix issues via /boost
+#   imp <plan.md>                - Execute implementation plan via /goal
+#   continue [instructions...]   - Continue plan implementation or supply feedback
 # ==============================================================================
 
 set -uo pipefail
 
+SESSION_FILE=".agy-session"
+
 show_help() {
   cat <<'EOF'
 Usage:
-  agy-run.sh imp <path/to/plan.md>   Implement a plan file via /goal
-  agy-run.sh fix "<issue_desc>"      Fix issues via /boost
-  agy-run.sh -h, --help              Show this help message
+  agy-run.sh imp <path/to/plan.md>            Implement a plan file via /goal
+  agy-run.sh continue [instructions...]       Continue plan implementation or supply feedback
+  agy-run.sh -h, --help                       Show this help message
 
 Environment:
-  AGY_TIMEOUT                        Execution timeout (default: 30m)
+  AGY_TIMEOUT                                 Execution timeout (default: 30m)
 EOF
 }
 
@@ -35,7 +37,16 @@ if ! command -v agy >/dev/null 2>&1; then
   exit 127
 fi
 
+# Ensure session file is excluded from git if in a git repo
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || true)"
+  if [ -n "$GIT_DIR" ] && [ -d "$GIT_DIR/info" ]; then
+    grep -q "^\.agy-session" "$GIT_DIR/info/exclude" 2>/dev/null || echo ".agy-session" >> "$GIT_DIR/info/exclude"
+  fi
+fi
+
 PROMPT=""
+SESSION_ARGS=()
 
 case "$ACTION" in
   -h|--help|help)
@@ -59,16 +70,28 @@ case "$ACTION" in
     PROMPT="/goal Implement Plan @${PLAN_FILE}"
     ;;
 
-  fix)
-    if [ $# -lt 1 ] || [ -z "${1:-}" ]; then
-      echo "[agy-run] Error: 'fix' requires an issue description." >&2
-      echo "Usage: ./scripts/agy-run.sh fix \"description of issue\"" >&2
-      exit 1
+  continue)
+    INSTRUCTIONS="$*"
+    if [ -f "$SESSION_FILE" ] && [ -s "$SESSION_FILE" ]; then
+      CONV_ID="$(head -n 1 "$SESSION_FILE" | tr -d '[:space:]')"
+    else
+      CONV_ID=""
     fi
-    FIX_DESC="$1"
-    echo "=== Running AGY Issue Fix ==="
-    echo "Fix: $FIX_DESC"
-    PROMPT="/boost Fix ${FIX_DESC}"
+
+    if [ -n "$CONV_ID" ]; then
+      echo "=== Continuing AGY Session: $CONV_ID ==="
+      SESSION_ARGS+=(--conversation "$CONV_ID")
+    else
+      echo "=== Continuing AGY Session: (fallback to last conversation -c) ==="
+      SESSION_ARGS+=(-c)
+    fi
+
+    if [ -z "$INSTRUCTIONS" ]; then
+      PROMPT="Continue implementing the plan. Check current progress, finish all remaining tasks, and ensure all tests pass."
+    else
+      echo "Instructions: $INSTRUCTIONS"
+      PROMPT="Continue implementing the plan: ${INSTRUCTIONS}. Finish remaining tasks and ensure tests pass."
+    fi
     ;;
 
   *)
@@ -78,7 +101,9 @@ case "$ACTION" in
     ;;
 esac
 
-CMD=(agy --mode accept-edits --print-timeout 30m --output-format json -p "$PROMPT")
+CMD=(agy --mode accept-edits --print-timeout "${AGY_TIMEOUT:-30m}" --output-format json)
+[ ${#SESSION_ARGS[@]} -gt 0 ] && CMD+=("${SESSION_ARGS[@]}")
+CMD+=(-p "$PROMPT")
 
 TMP_OUT="$(mktemp -t agy-out.XXXXXX)"
 trap 'rm -f "$TMP_OUT"' EXIT
@@ -87,24 +112,30 @@ echo "[agy-run] Running AGY..."
 AGY_EXIT=0
 "${CMD[@]}" > "$TMP_OUT" || AGY_EXIT=$?
 
-# Parse and display output
+# Parse output and save conversation ID
 if [ -s "$TMP_OUT" ]; then
   python3 -c '
 import json, sys
 try:
     with open(sys.argv[1]) as f:
         data = json.load(f)
+    cid = data.get("conversation_id", "")
+    if cid:
+        with open(sys.argv[2], "w") as sf:
+            sf.write(cid + "\n")
     status = data.get("status", "UNKNOWN")
     duration = data.get("duration_seconds", 0)
     print("\n" + "=" * 60)
     print("Status:         ", status)
+    if cid:
+        print("Conversation ID:", cid)
     print(f"Duration:        {duration:.1f}s")
     print("=" * 60 + "\n")
     print(data.get("response", "").strip())
 except Exception:
     with open(sys.argv[1]) as f:
         print(f.read())
-' "$TMP_OUT"
+' "$TMP_OUT" "$SESSION_FILE"
 fi
 
 # Post-Execution Git Summary & Next Steps
