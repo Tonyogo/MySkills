@@ -39,7 +39,7 @@ Planning Agent (Superpowers)       AGY (Implementation)       Claude Code (Revie
 - **三方职责对齐**：
   - **Superpowers / Planner**：决定 *What to build*（需求分解、架构设计、输出 Implementation Plan）。
   - **AGY CLI**：决定 *How to implement*（读写文件、依赖安装、运行测试、自查自纠、符合规范的 Commit）。
-  - **Claude Code**：负责 *Independent Review*（对照计划、Git Diff、测试覆盖率进行客观验收）。
+  - **Reviewer Agent (Claude Code / Antigravity)**：负责 *Independent Review*（执行 4 层门禁验收：执行健康度、Plan 任务勾选、自动化测试运行与 Git Diff 代码审查，自主驱动 continue 闭环）。
 - **轻量极简双命令**：
   - **`imp <plan.md>`**：利用 AGY 原生 `/goal` 深度实现指定计划文件，自带完整性自审机制。
   - **`continue [instructions...]`**：利用 AGY 原生 `-c` 自动续接最近一次会话，支持多轮反馈闭环与自查补全，实现全自主迭代完成。
