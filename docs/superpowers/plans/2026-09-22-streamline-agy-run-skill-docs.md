@@ -26,7 +26,7 @@
 **Interfaces:**
 - Produces: Concise skill documentation `agy-run/SKILL.md` (< 45 lines).
 
-- [ ] **Step 1: Check current line count of `agy-run/SKILL.md`**
+- [x] **Step 1: Check current line count of `agy-run/SKILL.md`**
 
 Run:
 ```bash
@@ -34,7 +34,7 @@ wc -l agy-run/SKILL.md
 ```
 Expected: ~160 lines.
 
-- [ ] **Step 2: Replace `agy-run/SKILL.md` with streamlined content**
+- [x] **Step 2: Replace `agy-run/SKILL.md` with streamlined content**
 
 Write the following content to `agy-run/SKILL.md`:
 
@@ -80,7 +80,7 @@ agy-run.sh continue "Fix test failure in user_spec: assertion failed at line 42"
 4. **Complete**: When all tests pass and changes are clean, proceed with Git commit/push.
 ```
 
-- [ ] **Step 3: Verify line count and format constraints**
+- [x] **Step 3: Verify line count and format constraints**
 
 Run:
 ```bash
@@ -90,7 +90,7 @@ Expected: Less than 45 lines (around 38 lines).
 
 Also verify that frontmatter parses cleanly and markdown formatting renders properly.
 
-- [ ] **Step 4: Commit changes to Git**
+- [x] **Step 4: Commit changes to Git**
 
 ```bash
 git add agy-run/SKILL.md
