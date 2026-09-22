@@ -108,7 +108,8 @@ CMD+=(-p "$PROMPT")
 TMP_OUT="$(mktemp -t agy-out.XXXXXX)"
 trap 'rm -f "$TMP_OUT"' EXIT
 
-echo "[agy-run] Running AGY..."
+CMD_STR="$(printf '%q ' "${CMD[@]}")"
+echo "[agy-run] Executing: ${CMD_STR% }"
 AGY_EXIT=0
 "${CMD[@]}" > "$TMP_OUT" || AGY_EXIT=$?
 
