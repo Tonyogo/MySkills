@@ -33,7 +33,7 @@
   - `agy-run.sh continue [instructions...]`
   - `agy-run.sh -h | --help`
 
-- [ ] **Step 1: Write test commands to verify CLI validation and behavior**
+- [x] **Step 1: Write test commands to verify CLI validation and behavior**
 
 Verify:
 1. `agy-run.sh` with no arguments prints usage and exits with code 1.
@@ -43,7 +43,7 @@ Verify:
 5. `agy-run.sh continue` without `.agy-session` falls back to `-c`.
 6. `agy-run.sh continue` with `.agy-session` passes `--conversation <id>`.
 
-- [ ] **Step 2: Update `agy-run/scripts/agy-run.sh` implementation**
+- [x] **Step 2: Update `agy-run/scripts/agy-run.sh` implementation**
 
 Replace `agy-run/scripts/agy-run.sh` with:
 
@@ -219,7 +219,7 @@ fi
 exit "$AGY_EXIT"
 ```
 
-- [ ] **Step 3: Run verification tests on `agy-run.sh`**
+- [x] **Step 3: Run verification tests on `agy-run.sh`**
 
 Run:
 ```bash
@@ -230,7 +230,7 @@ Run:
 ```
 Expected: All output expected errors and usage info.
 
-- [ ] **Step 4: Commit changes**
+- [x] **Step 4: Commit changes**
 
 ```bash
 git add agy-run/scripts/agy-run.sh
@@ -247,7 +247,7 @@ git commit -m "feat(agy-run): support multi-turn plan execution with imp and con
 **Interfaces:**
 - Produces: Updated documentation in `agy-run/SKILL.md` describing the multi-turn lifecycle.
 
-- [ ] **Step 1: Write updated `agy-run/SKILL.md`**
+- [x] **Step 1: Write updated `agy-run/SKILL.md`**
 
 Replace `agy-run/SKILL.md` with:
 
@@ -293,11 +293,11 @@ Continue the plan to complete remaining tasks or provide feedback on issues foun
 4. **Complete:** Once all tasks and tests pass, review the final Git summary and proceed with commit/push.
 ```
 
-- [ ] **Step 2: Verify `SKILL.md` syntax and formatting**
+- [x] **Step 2: Verify `SKILL.md` syntax and formatting**
 
 Check rendering and ensure no obsolete `fix` references remain.
 
-- [ ] **Step 3: Commit changes**
+- [x] **Step 3: Commit changes**
 
 ```bash
 git add agy-run/SKILL.md

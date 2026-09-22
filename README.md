@@ -10,7 +10,7 @@
 
 | 技能名称 | 核心职责 | 适用场景 | 关键依赖 / 工具 | 文档入口 |
 | :--- | :--- | :--- | :--- | :--- |
-| **`agy-run`** | **跨 Agent 协同实现**<br>Claude Code 规划/审查 ➔ AGY CLI 自主执行与测试 | 需求/架构计划已由 Superpowers 生成，需转交 AGY 自动写代码、跑测试、修复问题 | `agy` CLI, Bash, Git | [README / SKILL.md](./agy-run/SKILL.md) |
+| **`agy-run`** | **跨 Agent 协同实现**<br>Claude Code 规划/审查 ➔ AGY CLI 自主执行与测试 | 需求/架构计划已由 Superpowers 生成，需转交 AGY 自动写代码、跑测试、多轮迭代完成 | `agy` CLI, Bash, Git | [README / SKILL.md](./agy-run/SKILL.md) |
 | **`man-system`** | **全栈链路追踪与排障**<br>微前端/网关/核心微服务/MQ 跨层定位 | 业务异常排查（如点击无响应、路由丢失、事务回滚、MQ 掉消息）、服务地图生成 | Python 3, 正则扫描器 | [README / SKILL.md](./man-system/SKILL.md) |
 
 ---
@@ -31,8 +31,8 @@ Planning Agent (Superpowers)       AGY (Implementation)       Claude Code (Revie
                                             │                      ┌────┴────┐
                                             │                    PASS     NEEDS FIX
                                             │                      │         │
-                                            │◄── Concrete Feedback ┴─────────┘
-                                      FIX + RE-TEST
+                                            │◄── Feedback / Continue ───────┘
+                                    CONTINUE + RE-TEST
 ```
 
 #### 🌟 核心特性
@@ -42,7 +42,7 @@ Planning Agent (Superpowers)       AGY (Implementation)       Claude Code (Revie
   - **Claude Code**：负责 *Independent Review*（对照计划、Git Diff、测试覆盖率进行客观验收）。
 - **轻量极简双命令**：
   - **`imp <plan.md>`**：利用 AGY 原生 `/goal` 深度实现指定计划文件，自带完整性自审机制。
-  - **`fix "<issue>"`**：利用 AGY 原生 `/boost` 对 Review 发现的具体缺陷进行高强度定向修复。
+  - **`continue [instructions...]`**：支持多轮会话恢复与反馈闭环（会话持久化在 `.agy-session`，自动容错降级），实现全自主迭代完成。
 - **即插即用 Runner 引擎**：
   - 核心脚本 [`scripts/agy-run.sh`](./agy-run/scripts/agy-run.sh) 提供严格的参数校验、执行耗时汇总以及自动化的 Git Status、Diff 统计与后续操作引导。
 
