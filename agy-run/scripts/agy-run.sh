@@ -78,7 +78,7 @@ case "$ACTION" in
     ;;
 esac
 
-CMD=(agy --mode accept-edits --dangerously-skip-permissions --output-format json --print-timeout "${AGY_TIMEOUT:-30m}" -p "$PROMPT")
+CMD=(agy --mode accept-edits --print-timeout 30m --output-format json -p "$PROMPT")
 
 TMP_OUT="$(mktemp -t agy-out.XXXXXX)"
 trap 'rm -f "$TMP_OUT"' EXIT
