@@ -13,21 +13,21 @@ Orchestrate end-to-end plan implementation with **AGY CLI** (`/goal` and `-c`) u
 The skill establishes a closed-loop pair-programming paradigm:
 - **Planner**: Specifies *What to build* (Structured Implementation Plan).
 - **AGY CLI**: Executes *How to implement* (Autonomous code editing and local testing via `/goal`).
-- **Reviewer Agent (Claude Code, OpenAI Codex, etc.)**: Conducts *Independent 4-Gate Review* and drives iterative completion via `continue` until 100% verified.
+- **Reviewer Agent (Claude Code / Generic Agent)**: Conducts *Independent 4-Gate Review* and drives iterative completion via `continue` until 100% verified.
 
 ---
 
 ## 📍 Locating the Runner Script
 
-Following the Superpowers skill discovery pattern, resolve `<SCRIPT_PATH>` using **local workspace priority** with **host agent global fallback**:
+Following the skill discovery pattern, resolve `<SCRIPT_PATH>` using **local workspace priority** with **host global fallback**:
 
 1. **Local Workspace (Priority)**:
-   - Repository-local: `./agy-run/scripts/agy-run.sh`
-   - Project-level Claude: `./.claude/skills/agy-run/scripts/agy-run.sh`
-   - Project-level Codex: `./.codex/skills/agy-run/scripts/agy-run.sh`
+   - Current repository: `./agy-run/scripts/agy-run.sh`
+   - Claude Code: `./.claude/skills/agy-run/scripts/agy-run.sh`
+   - Generic Agent: `./.agent/skills/agy-run/scripts/agy-run.sh` *(or `./.agents/skills/agy-run/scripts/agy-run.sh`)*
 2. **Host Agent Global (Fallback)**:
    - Claude Code: `~/.claude/skills/agy-run/scripts/agy-run.sh`
-   - OpenAI Codex: `~/.codex/skills/agy-run/scripts/agy-run.sh`
+   - Generic Agent: `~/.agent/skills/agy-run/scripts/agy-run.sh`
 
 *(In the instructions below, `<SCRIPT_PATH>` refers to the resolved path above).*
 
