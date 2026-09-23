@@ -396,7 +396,7 @@ git commit -m "docs(agy-remote): update documentation for hardened zero-target C
 **Files:**
 - Modify: `agy-remote/tests/run_all_tests.sh`
 
-- [ ] **Step 1: Run complete test suite**
+- [x] **Step 1: Run complete test suite**
 
 Run:
 ```bash
@@ -404,7 +404,7 @@ bash agy-remote/tests/run_all_tests.sh
 ```
 Expected: `All agy-remote tests passed successfully!`
 
-- [ ] **Step 2: Verify git working tree is clean**
+- [x] **Step 2: Verify git working tree is clean**
 
 Run:
 ```bash
