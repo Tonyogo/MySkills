@@ -30,7 +30,7 @@
 **Interfaces:**
 - Produces: Updated `agy-run/SKILL.md` containing `## Workflow & Circuit Breaker` and `### 🛑 Hard Stop & Escalation Rules`.
 
-- [ ] **Step 1: Inspect current `agy-run/SKILL.md`**
+- [x] **Step 1: Inspect current `agy-run/SKILL.md`**
 
 Run:
 ```bash
@@ -38,7 +38,7 @@ wc -l agy-run/SKILL.md
 ```
 Expected: ~39 lines.
 
-- [ ] **Step 2: Update `agy-run/SKILL.md` with circuit breaker and escalation rules**
+- [x] **Step 2: Update `agy-run/SKILL.md` with circuit breaker and escalation rules**
 
 Update `agy-run/SKILL.md` to:
 
@@ -95,7 +95,7 @@ Do **NOT** guess or repeatedly edit files without progress. You must **STOP** an
 3. Proposed options/suggestions, and ask the user how to proceed.
 ```
 
-- [ ] **Step 3: Verify document constraints**
+- [x] **Step 3: Verify document constraints**
 
 Run:
 ```bash
@@ -105,7 +105,7 @@ Expected: Around 50-55 lines (< 60 lines).
 
 Verify Markdown formatting and frontmatter validity.
 
-- [ ] **Step 4: Commit changes to Git**
+- [x] **Step 4: Commit changes to Git**
 
 ```bash
 git add agy-run/SKILL.md
