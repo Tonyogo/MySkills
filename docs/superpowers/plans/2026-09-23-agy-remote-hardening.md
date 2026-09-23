@@ -308,11 +308,11 @@ git commit -m "feat(agy-remote): implement Base64 prompt encoding and remote dec
 **Interfaces:**
 - Produces: Safer local git staging (specifically staging `$ACTION` if it is a plan file, avoiding blind `git add -A`).
 
-- [ ] **Step 1: Write test checking that plan file is staged specifically**
+- [x] **Step 1: Write test checking that plan file is staged specifically**
 
 In `agy-remote/tests/test_remote_payload.sh`, verify that when uncommitted `plan.md` is present, it is committed before pushing.
 
-- [ ] **Step 2: Update local staging logic in `agy-remote.sh`**
+- [x] **Step 2: Update local staging logic in `agy-remote.sh`**
 
 Modify `agy-remote/scripts/agy-remote.sh`:
 ```bash
@@ -333,7 +333,7 @@ if [ "${AGY_TEST_MOCK:-0}" != "1" ]; then
 fi
 ```
 
-- [ ] **Step 3: Run test to verify it passes**
+- [x] **Step 3: Run test to verify it passes**
 
 Run:
 ```bash
@@ -341,7 +341,7 @@ bash agy-remote/tests/run_all_tests.sh
 ```
 Expected: All tests PASS.
 
-- [ ] **Step 4: Commit changes**
+- [x] **Step 4: Commit changes**
 
 ```bash
 git add agy-remote/scripts/agy-remote.sh agy-remote/tests/test_remote_payload.sh

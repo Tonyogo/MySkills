@@ -92,10 +92,16 @@ REMOTE_DIR="${REMOTE_WORK_DIR:-/workspace/${PROJECT_NAME}}"
 
 # Step 1: Local side - stage & commit uncommitted changes (such as plan.md), then push to remote branch
 if [ "${AGY_TEST_MOCK:-0}" != "1" ]; then
-  if [ -n "$(git status --porcelain)" ]; then
-    echo "[agy-remote] Staging and committing local changes on '$CURRENT_BRANCH'..."
+  if [ "$ACTION" != "continue" ] && [ -f "$ACTION" ]; then
+    if git status --porcelain "$ACTION" | grep -q .; then
+      echo "[agy-remote] Staging and committing plan file '$ACTION'..."
+      git add "$ACTION"
+      git commit -m "docs(plan): add or update plan before remote execution"
+    fi
+  elif [ -n "$(git status --porcelain)" ]; then
+    echo "[agy-remote] Note: Local branch has uncommitted changes. Staging before sync..."
     git add -A
-    git commit -m "docs/feat(agy-remote): auto-commit before remote execution"
+    git commit -m "wip(agy-remote): sync local work before continue"
   fi
   echo "[agy-remote] Syncing local branch '$CURRENT_BRANCH' to origin..."
   git push -u origin "$CURRENT_BRANCH"

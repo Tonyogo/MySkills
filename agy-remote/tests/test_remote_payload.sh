@@ -63,4 +63,26 @@ TEST_REPO2="$(mktemp -d)"
 rm -rf "$TEST_REPO2"
 echo "PASS: Complex prompt encoding works"
 
+echo "=== Test 3: Targeted local plan staging ==="
+TEST_REPO3="$(mktemp -d)"
+(
+  cd "$TEST_REPO3"
+  git init -b feat/staging-test >/dev/null 2>&1
+  git config user.name "Test User"
+  git config user.email "test@example.com"
+  touch initial.txt
+  git add initial.txt && git commit -m "initial commit" >/dev/null 2>&1
+  git remote add origin "$TEST_REPO3"
+
+  touch plan.md
+  touch unrelated.txt
+  PATH="$TMP_BIN_DIR:$PATH"
+  OUTPUT="$("$BIN" plan.md)"
+  echo "$OUTPUT" | grep -q "Staging and committing plan file 'plan.md'..."
+  git log -1 --pretty=%B | grep -q "docs(plan): add or update plan before remote execution"
+  git status --porcelain | grep -q "? unrelated.txt"
+)
+rm -rf "$TEST_REPO3"
+echo "PASS: Targeted local staging works"
+
 rm -rf "$TMP_BIN_DIR"
