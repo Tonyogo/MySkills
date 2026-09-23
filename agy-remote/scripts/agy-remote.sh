@@ -212,12 +212,34 @@ if [ "${AGY_TEST_MOCK:-0}" != "1" ]; then
   git pull origin "$CURRENT_BRANCH" || true
 fi
 
-# Display git status and diff stat
+# Display git status, diff stat, and suggested next steps
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo -e "\n================ Git Status ================"
   git status --short
   echo -e "\n================ Git Diff Stat ============="
   git diff --stat
+
+  HAS_UNCOMMITTED="$(git status --porcelain 2>/dev/null || true)"
+
+  echo -e "\n================ Suggested Next Steps ================"
+  [ -n "$CURRENT_BRANCH" ] && echo "Current Branch: $CURRENT_BRANCH"
+
+  if [ -n "$HAS_UNCOMMITTED" ]; then
+    echo "1. Uncommitted changes detected:"
+    echo "   git add -A && git commit -m \"feat: <description>\""
+  else
+    echo "1. Working tree:     clean (all changes committed)"
+  fi
+
+  echo "2. Iterate or fix:   agy-remote.sh $TARGET_ID continue \"[optional feedback]\""
+  echo "3. Run local tests:  verify independently before merging"
+  if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "main" ] && [ "$CURRENT_BRANCH" != "master" ]; then
+    echo "4. Push branch:      git push -u origin $CURRENT_BRANCH"
+    echo "5. Merge to main:    git checkout main && git merge $CURRENT_BRANCH"
+  else
+    echo "4. Push to remote:   git push"
+  fi
+  echo -e "======================================================\n"
 fi
 
 exit "$GT_EXIT"
