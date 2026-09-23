@@ -217,7 +217,7 @@ git commit -m "feat(agy-remote): add convention-based remote directory resolutio
 - Consumes: `REMOTE_PROMPT` containing complex characters (quotes, backticks, newlines).
 - Produces: `ENCODED_PROMPT` sent to remote container and safely decoded via Base64.
 
-- [ ] **Step 1: Add test for complex instructions containing quotes and special characters**
+- [x] **Step 1: Add test for complex instructions containing quotes and special characters**
 
 In `agy-remote/tests/test_remote_payload.sh`, add a test invoking:
 ```bash
@@ -225,14 +225,14 @@ In `agy-remote/tests/test_remote_payload.sh`, add a test invoking:
 ```
 Verify that the prompt is passed intact without shell breakage.
 
-- [ ] **Step 2: Run test to verify behavior**
+- [x] **Step 2: Run test to verify behavior**
 
 Run:
 ```bash
 bash agy-remote/tests/test_remote_payload.sh
 ```
 
-- [ ] **Step 3: Implement Base64 prompt encoding in `agy-remote.sh`**
+- [x] **Step 3: Implement Base64 prompt encoding in `agy-remote.sh`**
 
 Modify `agy-remote/scripts/agy-remote.sh`:
 ```bash
@@ -282,7 +282,7 @@ REMOTE_EOF
 )
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 ```bash
@@ -290,7 +290,7 @@ bash agy-remote/tests/test_remote_payload.sh
 ```
 Expected: PASS.
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
 
 ```bash
 git add agy-remote/scripts/agy-remote.sh agy-remote/tests/test_remote_payload.sh

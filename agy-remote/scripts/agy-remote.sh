@@ -101,18 +101,21 @@ if [ "${AGY_TEST_MOCK:-0}" != "1" ]; then
   git push -u origin "$CURRENT_BRANCH"
 fi
 
-# Step 2: Build remote command arguments for agy
+# Step 2: Build prompt
 if [ "$ACTION" = "continue" ]; then
   if [ -z "$INSTRUCTIONS" ]; then
     REMOTE_PROMPT="Continue implementing the plan. Check current progress, finish all remaining tasks, and ensure all tests pass."
   else
     REMOTE_PROMPT="Continue implementing the plan: ${INSTRUCTIONS}. Finish remaining tasks and ensure tests pass."
   fi
-  REMOTE_AGY_CMD="agy --mode accept-edits --print-timeout \"$TIMEOUT\" --output-format json -c -p \"$REMOTE_PROMPT\""
+  CONTINUE_FLAG="-c"
 else
   REMOTE_PROMPT="/goal Implement Plan @${ACTION}"
-  REMOTE_AGY_CMD="agy --mode accept-edits --print-timeout \"$TIMEOUT\" --output-format json -p \"$REMOTE_PROMPT\""
+  CONTINUE_FLAG=""
 fi
+
+# Encode prompt to Base64 (single-line, safe from all shell quoting)
+ENCODED_PROMPT="$(printf '%s' "$REMOTE_PROMPT" | base64 | tr -d '\r\n')"
 
 # Step 3: Dispatch remote payload via gt exec (all compilation/test/agy execution happens inside the container)
 REMOTE_SCRIPT=$(cat <<REMOTE_EOF
@@ -124,15 +127,18 @@ if [ ! -d "$REMOTE_DIR" ]; then
 fi
 cd "$REMOTE_DIR"
 
-# Fetch and sync the feature branch in remote environment
 git fetch origin "$CURRENT_BRANCH"
 git checkout "$CURRENT_BRANCH"
 git pull origin "$CURRENT_BRANCH"
 
-# Execute agy on the remote target
-$REMOTE_AGY_CMD
+DECODED_PROMPT=\$(printf '%s' "$ENCODED_PROMPT" | base64 -d)
 
-# Push any changes made by agy back to origin
+if [ -n "$CONTINUE_FLAG" ]; then
+  agy --mode accept-edits --print-timeout "$TIMEOUT" --output-format json -c -p "\$DECODED_PROMPT"
+else
+  agy --mode accept-edits --print-timeout "$TIMEOUT" --output-format json -p "\$DECODED_PROMPT"
+fi
+
 if [ -n "\$(git status --porcelain)" ]; then
   git add -A
   git commit -m "feat(agy-remote): update code via remote agy"
