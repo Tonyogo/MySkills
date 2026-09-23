@@ -13,28 +13,26 @@
 set -euo pipefail
 
 TIMEOUT="${AGY_TIMEOUT:-30m}"
-DEFAULT_TARGET="${AGY_TARGET:-}"
+DEFAULT_TARGET="${AGY_TARGET:-agy-remote-server}"
 REMOTE_DIR="${REMOTE_WORK_DIR:-}"
 
 show_help() {
   cat <<'EOF'
 Usage:
-  agy-remote.sh <target_id> <path/to/plan.md>            Implement a plan file remotely
-  agy-remote.sh <target_id> continue [instructions...]   Continue remote implementation or supply feedback
-  agy-remote.sh <path/to/plan.md>                        Implement plan (using $AGY_TARGET)
-  agy-remote.sh continue [instructions...]               Continue (using $AGY_TARGET)
-  agy-remote.sh -h, --help                               Show this help message
+  agy-remote.sh <path/to/plan.md>            Implement a plan file remotely
+  agy-remote.sh continue [instructions...]   Continue remote implementation or supply feedback
+  agy-remote.sh -h, --help                   Show this help message
 
-Environment Variables:
-  AGY_TARGET       Default target ID/container (allows omitting target_id in CLI)
-  AGY_TIMEOUT      Execution timeout (default: 30m)
-  REMOTE_WORK_DIR  Remote working directory (default: current directory or git root in container)
+Default Remote Environment:
+  Target:    agy-remote-server (override via AGY_TARGET)
+  Directory: /workspace/<repo-name> (override via REMOTE_WORK_DIR)
+  Timeout:   30m (override via AGY_TIMEOUT)
 EOF
 }
 
 if [ $# -lt 1 ]; then
   show_help >&2
-  echo "[agy-remote] Error: Missing target ID or plan file." >&2
+  echo "[agy-remote] Error: Missing command or plan file." >&2
   exit 1
 fi
 
@@ -45,47 +43,14 @@ case "$1" in
     ;;
 esac
 
-TARGET_ID=""
-ACTION=""
+TARGET_ID="$DEFAULT_TARGET"
+ACTION="$1"
+shift
+
 INSTRUCTIONS=""
-
-if [ -n "$DEFAULT_TARGET" ]; then
-  # If AGY_TARGET is set, check if $1 is a plan file or continue
-  if [ "$1" = "continue" ] || [ -f "$1" ] || [[ "$1" == *.md ]]; then
-    TARGET_ID="$DEFAULT_TARGET"
-    ACTION="$1"
-    shift
-    [ "$ACTION" = "continue" ] && INSTRUCTIONS="$*"
-  else
-    TARGET_ID="$1"
-    shift
-    if [ $# -lt 1 ]; then
-      echo "[agy-remote] Error: Missing command or plan file for target '$TARGET_ID'." >&2
-      exit 1
-    fi
-    ACTION="$1"
-    shift
-    [ "$ACTION" = "continue" ] && INSTRUCTIONS="$*"
-  fi
+if [ "$ACTION" = "continue" ]; then
+  INSTRUCTIONS="$*"
 else
-  TARGET_ID="$1"
-  shift
-  if [ $# -lt 1 ]; then
-    echo "[agy-remote] Error: Missing command or plan file for target '$TARGET_ID'." >&2
-    exit 1
-  fi
-  ACTION="$1"
-  shift
-  [ "$ACTION" = "continue" ] && INSTRUCTIONS="$*"
-fi
-
-# Validate target and action
-if [ -z "$TARGET_ID" ]; then
-  echo "[agy-remote] Error: Target ID must be provided as first argument or via AGY_TARGET." >&2
-  exit 1
-fi
-
-if [ "$ACTION" != "continue" ]; then
   if [ ! -f "$ACTION" ]; then
     echo "[agy-remote] Error: Plan file not found: '$ACTION'." >&2
     exit 1
@@ -240,7 +205,7 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo "1. Working tree:     clean (all changes committed)"
   fi
 
-  echo "2. Iterate or fix:   agy-remote.sh $TARGET_ID continue \"[optional feedback]\""
+  echo "2. Iterate or fix:   agy-remote.sh continue \"[optional feedback]\""
   echo "3. Run local tests:  verify independently before merging"
   if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "main" ] && [ "$CURRENT_BRANCH" != "master" ]; then
     echo "4. Push branch:      git push -u origin $CURRENT_BRANCH"

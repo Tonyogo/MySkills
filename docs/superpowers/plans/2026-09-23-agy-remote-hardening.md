@@ -34,7 +34,7 @@
 **Interfaces:**
 - Produces: CLI interface in `agy-remote.sh` accepting exclusively `<plan.md>` or `continue [instructions...]`, defaulting `TARGET_ID` to `agy-remote-server`.
 
-- [ ] **Step 1: Write failing CLI tests for the new argument structure**
+- [x] **Step 1: Write failing CLI tests for the new argument structure**
 
 Update `agy-remote/tests/test_cli_args.sh` to test the new argument parsing:
 ```bash
@@ -75,7 +75,7 @@ rm -rf "$TEST_REPO"
 echo "PASS: Branch protection works"
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 ```bash
@@ -83,7 +83,7 @@ bash agy-remote/tests/test_cli_args.sh
 ```
 Expected: FAIL (argument mismatch or error parsing with `test.md`).
 
-- [ ] **Step 3: Refactor argument parsing and default target in `agy-remote.sh`**
+- [x] **Step 3: Refactor argument parsing and default target in `agy-remote.sh`**
 
 Modify `agy-remote/scripts/agy-remote.sh`:
 - Set `DEFAULT_TARGET="${AGY_TARGET:-agy-remote-server}"`.
@@ -131,7 +131,7 @@ else
 fi
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 ```bash
@@ -139,7 +139,7 @@ bash agy-remote/tests/test_cli_args.sh
 ```
 Expected: PASS for all 4 tests.
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
 
 ```bash
 git add agy-remote/scripts/agy-remote.sh agy-remote/tests/test_cli_args.sh
