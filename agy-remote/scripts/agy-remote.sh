@@ -14,7 +14,6 @@ set -euo pipefail
 
 TIMEOUT="${AGY_TIMEOUT:-30m}"
 DEFAULT_TARGET="${AGY_TARGET:-agy-remote-server}"
-REMOTE_DIR="${REMOTE_WORK_DIR:-}"
 
 show_help() {
   cat <<'EOF'
@@ -88,6 +87,9 @@ check_preflight() {
 
 check_preflight
 
+PROJECT_NAME="$(basename "$(git rev-parse --show-toplevel)")"
+REMOTE_DIR="${REMOTE_WORK_DIR:-/workspace/${PROJECT_NAME}}"
+
 # Step 1: Local side - stage & commit uncommitted changes (such as plan.md), then push to remote branch
 if [ "${AGY_TEST_MOCK:-0}" != "1" ]; then
   if [ -n "$(git status --porcelain)" ]; then
@@ -115,9 +117,12 @@ fi
 # Step 3: Dispatch remote payload via gt exec (all compilation/test/agy execution happens inside the container)
 REMOTE_SCRIPT=$(cat <<REMOTE_EOF
 set -e
-if [ -n "$REMOTE_DIR" ]; then
-  cd "$REMOTE_DIR"
+# PROJECT_DIR_CHECK
+if [ ! -d "$REMOTE_DIR" ]; then
+  echo "[agy-remote] Error: Remote directory '$REMOTE_DIR' does not exist in $TARGET_ID." >&2
+  exit 1
 fi
+cd "$REMOTE_DIR"
 
 # Fetch and sync the feature branch in remote environment
 git fetch origin "$CURRENT_BRANCH"

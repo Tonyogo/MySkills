@@ -157,7 +157,7 @@ git commit -m "feat(agy-remote): default target to agy-remote-server and simplif
 **Interfaces:**
 - Produces: Dynamic calculation of `REMOTE_DIR="/workspace/${PROJECT_NAME}"` and pre-check inside container.
 
-- [ ] **Step 1: Add directory resolution test in `test_remote_payload.sh`**
+- [x] **Step 1: Add directory resolution test in `test_remote_payload.sh`**
 
 Modify `agy-remote/tests/test_remote_payload.sh` to assert that the remote script inspects `/workspace/<PROJECT_NAME>`:
 ```bash
@@ -165,7 +165,7 @@ Modify `agy-remote/tests/test_remote_payload.sh` to assert that the remote scrip
 echo "$OUTPUT" | grep -q "PROJECT_DIR_CHECK"
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run:
 ```bash
@@ -173,7 +173,7 @@ bash agy-remote/tests/test_remote_payload.sh
 ```
 Expected: FAIL.
 
-- [ ] **Step 3: Implement dynamic remote directory resolution in `agy-remote.sh`**
+- [x] **Step 3: Implement dynamic remote directory resolution in `agy-remote.sh`**
 
 In `agy-remote/scripts/agy-remote.sh`:
 - Compute project name:
@@ -190,7 +190,7 @@ fi
 cd "$REMOTE_DIR"
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 ```bash
@@ -198,7 +198,7 @@ bash agy-remote/tests/test_remote_payload.sh
 ```
 Expected: PASS.
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
 
 ```bash
 git add agy-remote/scripts/agy-remote.sh agy-remote/tests/test_remote_payload.sh
