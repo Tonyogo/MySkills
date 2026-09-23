@@ -23,3 +23,19 @@ echo "=== Test 4: AGY_TARGET fallback for non-existent plan ==="
 OUTPUT="$(AGY_TARGET=dummy_target "$BIN" nonexistent_plan.md 2>&1 || true)"
 echo "$OUTPUT" | grep -q "Error: Plan file not found: 'nonexistent_plan.md'"
 echo "PASS: AGY_TARGET fallback works"
+
+echo "=== Test 5: Reject execution on main or master branch ==="
+TEST_REPO="$(mktemp -d)"
+(
+  cd "$TEST_REPO"
+  git init -b main >/dev/null 2>&1
+  git config user.name "Test User"
+  git config user.email "test@example.com"
+  touch test.md
+  git add test.md && git commit -m "init" >/dev/null 2>&1
+  OUTPUT="$("$BIN" test_target test.md 2>&1 || true)"
+  echo "$OUTPUT" | grep -q "Refusing to run on 'main' or 'master' branch"
+)
+rm -rf "$TEST_REPO"
+echo "PASS: Branch protection works"
+
