@@ -9,16 +9,15 @@ Execute and iterate on implementation plans using **AGY CLI** (`/goal` and `cont
 
 ## Commands
 
-Run the runner script from `./agy-goal/scripts/agy-goal.sh` (or your configured skills path):
+Run the runner script from `./agy-goal/scripts/agy-goal.sh` (or your configured skills path).
 
-### 1. Implement Plan (`goal`)
-Start executing a written markdown plan (supports direct plan argument or explicit `goal` subcommand):
+> [!NOTE]
+> 默认单次任务超时时间为 **30 分钟**（可通过环境变量 `AGY_TIMEOUT` 调整，例如 `AGY_TIMEOUT=45m`）。
+
+### 1. Implement Plan
+Start executing a written markdown plan:
 ```bash
-# Direct plan execution:
 agy-goal.sh path/to/plan.md
-
-# Or explicit subcommand:
-agy-goal.sh goal path/to/plan.md
 ```
 
 ### 2. Continue Plan Execution (`continue`)

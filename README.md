@@ -41,10 +41,10 @@ Planning Agent (Superpowers)       AGY (Implementation)       Reviewer Agent (Cl
   - **AGY CLI**：决定 *How to implement*（读写文件、依赖安装、运行测试、自查自纠、符合规范的 Commit）。
   - **Reviewer Agent (Claude Code / 通用 Agent)**：负责 *Independent Review*（执行 4 层门禁验收：执行健康度、Plan 任务勾选、自动化测试运行与 Git Diff 代码审查，自主驱动 continue 闭环）。
 - **轻量极简双命令**：
-  - **`goal <plan.md>`（或直接 `<plan.md>`）**：利用 AGY 原生 `/goal` 深度实现指定计划文件，自带完整性自审机制。
+  - **`<plan.md>`**：直接传参执行，利用 AGY 原生 `/goal` 深度实现指定计划文件（默认 30 分钟超时，支持环境变量 `AGY_TIMEOUT` 自定义）。
   - **`continue [instructions...]`**：利用 AGY 原生 `-c` 自动续接最近一次会话，支持多轮反馈闭环与自查补全，实现全自主迭代完成。
 - **即插即用 Runner 引擎**：
-  - 核心脚本 [`scripts/agy-goal.sh`](./agy-goal/scripts/agy-goal.sh) 提供严格的参数校验、执行耗时汇总以及自动化的 Git Status、Diff 统计与后续操作引导。
+  - 核心脚本 [`scripts/agy-goal.sh`](./agy-goal/scripts/agy-goal.sh) 提供严格的参数校验、执行耗时汇总、30m 超时保护以及自动化的 Git Status、Diff 统计与后续操作引导。
 
 ---
 

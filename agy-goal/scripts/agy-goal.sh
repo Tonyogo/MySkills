@@ -2,23 +2,26 @@
 # ==============================================================================
 # agy-goal.sh - Multi-turn runner for AGY plan execution
 #
+# Default Timeout: 30m (configurable via AGY_TIMEOUT environment variable)
+#
 # Commands:
-#   [goal|run] <plan.md>         - Execute implementation plan via /goal (direct or subcommand)
+#   <plan.md>                    - Execute implementation plan via /goal
 #   continue [instructions...]   - Continue plan implementation or supply feedback
 # ==============================================================================
 
 set -uo pipefail
 
+TIMEOUT="${AGY_TIMEOUT:-30m}"
+
 show_help() {
   cat <<'EOF'
 Usage:
-  agy-goal.sh <path/to/plan.md>               Implement a plan file via /goal (direct)
-  agy-goal.sh goal <path/to/plan.md>          Implement a plan file (explicit subcommand)
+  agy-goal.sh <path/to/plan.md>               Implement a plan file via /goal
   agy-goal.sh continue [instructions...]      Continue plan implementation or supply feedback
   agy-goal.sh -h, --help                      Show this help message
 
-Environment:
-  AGY_TIMEOUT                                 Execution timeout (default: 30m)
+Notes:
+  - Default execution timeout is 30 minutes. You can override it via AGY_TIMEOUT (e.g. AGY_TIMEOUT=45m).
 EOF
 }
 
@@ -45,25 +48,16 @@ case "$ACTION" in
     exit 0
     ;;
 
-  goal|run|imp)
-    if [ $# -lt 1 ] || [ -z "${1:-}" ]; then
-      echo "[agy-goal] Error: '$ACTION' requires a plan file path." >&2
-      echo "Usage: $0 [goal|run] <path/to/plan.md>" >&2
-      exit 1
-    fi
-    PLAN_FILE="$1"
-    if [ ! -f "$PLAN_FILE" ]; then
-      echo "[agy-goal] Error: Plan file not found: $PLAN_FILE" >&2
-      exit 1
-    fi
-    echo "=== Running AGY Plan Implementation ==="
-    echo "Plan: $PLAN_FILE"
-    PROMPT="/goal Implement Plan @${PLAN_FILE}"
+  goal)
+    echo "[agy-goal] Note: The 'goal' subcommand has been removed for simplicity." >&2
+    echo "Usage: $0 <path/to/plan.md>" >&2
+    exit 1
     ;;
 
   continue)
     INSTRUCTIONS="$*"
     echo "=== Continuing Most Recent AGY Session (-c) ==="
+    echo "Timeout: $TIMEOUT"
     CMD_EXTRA_ARGS+=(-c)
 
     if [ -z "$INSTRUCTIONS" ]; then
@@ -79,7 +73,8 @@ case "$ACTION" in
     if [ -f "$ACTION" ]; then
       PLAN_FILE="$ACTION"
       echo "=== Running AGY Plan Implementation ==="
-      echo "Plan: $PLAN_FILE"
+      echo "Plan:    $PLAN_FILE"
+      echo "Timeout: $TIMEOUT"
       PROMPT="/goal Implement Plan @${PLAN_FILE}"
     else
       echo "[agy-goal] Error: Unknown command or plan file not found: '$ACTION'." >&2
@@ -89,7 +84,7 @@ case "$ACTION" in
     ;;
 esac
 
-CMD=(agy --mode accept-edits --print-timeout "${AGY_TIMEOUT:-30m}" --output-format json)
+CMD=(agy --mode accept-edits --print-timeout "$TIMEOUT" --output-format json)
 [ ${#CMD_EXTRA_ARGS[@]} -gt 0 ] && CMD+=("${CMD_EXTRA_ARGS[@]}")
 CMD+=(-p "$PROMPT")
 
