@@ -116,6 +116,110 @@ check_preflight() {
 
 check_preflight
 
-# Placeholder for downstream execution steps
-echo "TARGET: $TARGET_ID, ACTION: $ACTION, TIMEOUT: $TIMEOUT"
+# Push local branch to origin first
+if [ "${AGY_TEST_MOCK:-0}" != "1" ]; then
+  if [ -n "$(git status --porcelain)" ]; then
+    echo "[agy-remote] Staging and committing uncommitted changes on '$CURRENT_BRANCH'..."
+    git add -A
+    git commit -m "docs/feat(agy-remote): auto-commit before remote execution"
+  fi
+  echo "[agy-remote] Syncing local branch '$CURRENT_BRANCH' to origin..."
+  git push -u origin "$CURRENT_BRANCH"
+fi
+
+# Build remote agy prompt
+if [ "$ACTION" = "continue" ]; then
+  if [ -z "$INSTRUCTIONS" ]; then
+    REMOTE_PROMPT="Continue implementing the plan. Check current progress, finish all remaining tasks, and ensure all tests pass."
+  else
+    REMOTE_PROMPT="Continue implementing the plan: ${INSTRUCTIONS}. Finish remaining tasks and ensure tests pass."
+  fi
+  AGY_ARGS=(-c -p "$REMOTE_PROMPT")
+else
+  REMOTE_PROMPT="/goal Implement Plan @${ACTION}"
+  AGY_ARGS=(-p "$REMOTE_PROMPT")
+fi
+
+ESCAPED_ARGS="$(printf '%q ' "${AGY_ARGS[@]}")"
+
+# Prepare remote execution script
+REMOTE_SCRIPT=$(cat <<REMOTE_EOF
+set -e
+if [ -n "$REMOTE_DIR" ]; then
+  cd "$REMOTE_DIR"
+fi
+git fetch origin "$CURRENT_BRANCH"
+git checkout "$CURRENT_BRANCH"
+git pull origin "$CURRENT_BRANCH"
+
+agy --mode accept-edits --print-timeout "$TIMEOUT" --output-format json $ESCAPED_ARGS
+
+if [ -n "\$(git status --porcelain)" ]; then
+  git add -A
+  git commit -m "feat(agy-remote): update code via agy"
+  git push origin "$CURRENT_BRANCH"
+fi
+REMOTE_EOF
+)
+
+TMP_OUT="$(mktemp -t agy-remote-out.XXXXXX)"
+trap 'rm -f "$TMP_OUT"' EXIT
+
+echo "[agy-remote] Executing on remote target '$TARGET_ID'..."
+GT_EXIT=0
+gt exec "$TARGET_ID" bash -c "$REMOTE_SCRIPT" > "$TMP_OUT" || GT_EXIT=$?
+
+# Parse JSON output via python3 and output Status, Conversation ID, Duration, and text response.
+if [ -s "$TMP_OUT" ]; then
+  python3 -c '
+import json, sys
+try:
+    with open(sys.argv[1]) as f:
+        raw_content = f.read()
+    data = None
+    json_start = raw_content.find("{")
+    json_end = raw_content.rfind("}")
+    if json_start != -1 and json_end != -1 and json_end > json_start:
+        prefix = raw_content[:json_start].strip()
+        if prefix:
+            print(prefix)
+        try:
+            data = json.loads(raw_content[json_start:json_end+1])
+        except Exception:
+            pass
+    if data:
+        cid = data.get("conversation_id", "")
+        status = data.get("status", "UNKNOWN")
+        duration = data.get("duration_seconds", 0)
+        print("\n" + "=" * 60)
+        print("Status:          " + str(status))
+        if cid:
+            print("Conversation ID: " + str(cid))
+        print(f"Duration:        {duration:.1f}s")
+        print("=" * 60 + "\n")
+        print(data.get("response", "").strip())
+    else:
+        print(raw_content)
+except Exception:
+    with open(sys.argv[1]) as f:
+        print(f.read())
+' "$TMP_OUT"
+fi
+
+# Locally pull changes
+if [ "${AGY_TEST_MOCK:-0}" != "1" ]; then
+  echo -e "\n[agy-remote] Pulling remote changes from origin/$CURRENT_BRANCH..."
+  git pull origin "$CURRENT_BRANCH" || true
+fi
+
+# Display git status and diff stat
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  echo -e "\n================ Git Status ================"
+  git status --short
+  echo -e "\n================ Git Diff Stat ============="
+  git diff --stat
+fi
+
+exit "$GT_EXIT"
+
 
