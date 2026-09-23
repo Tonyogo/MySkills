@@ -33,7 +33,7 @@
 **Interfaces:**
 - Produces: CLI argument parser in `agy-remote.sh` supporting `<target_id> <plan.md>`, `<target_id> continue`, `AGY_TARGET` fallback, and `--help`.
 
-- [ ] **Step 1: Write CLI argument parser tests**
+- [x] **Step 1: Write CLI argument parser tests**
 
 Create `agy-remote/tests/test_cli_args.sh`:
 ```bash
@@ -64,7 +64,7 @@ echo "$OUTPUT" | grep -q "Error: Plan file not found: 'nonexistent_plan.md'"
 echo "PASS: AGY_TARGET fallback works"
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 ```bash
@@ -73,7 +73,7 @@ bash agy-remote/tests/test_cli_args.sh
 ```
 Expected: FAIL (file `agy-remote/scripts/agy-remote.sh` not found).
 
-- [ ] **Step 3: Implement argument and target resolution in `agy-remote.sh`**
+- [x] **Step 3: Implement argument and target resolution in `agy-remote.sh`**
 
 Create `agy-remote/scripts/agy-remote.sh`:
 ```bash
@@ -168,7 +168,7 @@ fi
 echo "TARGET: $TARGET_ID, ACTION: $ACTION, TIMEOUT: $TIMEOUT"
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 ```bash
@@ -178,7 +178,7 @@ bash agy-remote/tests/test_cli_args.sh
 ```
 Expected: PASS with all 4 tests passing.
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
 
 ```bash
 git add agy-remote/scripts/agy-remote.sh agy-remote/tests/test_cli_args.sh
@@ -197,7 +197,7 @@ git commit -m "feat(agy-remote): implement CLI argument parsing and target resol
 - Consumes: `TARGET_ID`, `ACTION`, `INSTRUCTIONS` from Task 1.
 - Produces: Pre-flight check functions: `check_local_branch`, `check_dependencies`, `probe_target`.
 
-- [ ] **Step 1: Add pre-flight test cases to test script**
+- [x] **Step 1: Add pre-flight test cases to test script**
 
 Modify `agy-remote/tests/test_cli_args.sh` to add mock testing for pre-flight:
 ```bash
@@ -218,7 +218,7 @@ rm -rf "$TEST_REPO"
 echo "PASS: Branch protection works"
 ```
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run:
 ```bash
@@ -226,7 +226,7 @@ bash agy-remote/tests/test_cli_args.sh
 ```
 Expected: FAIL on Test 5 (branch protection not implemented).
 
-- [ ] **Step 3: Implement pre-flight validations in `agy-remote.sh`**
+- [x] **Step 3: Implement pre-flight validations in `agy-remote.sh`**
 
 Modify `agy-remote/scripts/agy-remote.sh`:
 - Check for `git` inside working tree.
@@ -263,7 +263,7 @@ check_preflight() {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 ```bash
@@ -271,7 +271,7 @@ bash agy-remote/tests/test_cli_args.sh
 ```
 Expected: PASS with all 5 tests passing.
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
 
 ```bash
 git add agy-remote/scripts/agy-remote.sh agy-remote/tests/test_cli_args.sh
@@ -290,7 +290,7 @@ git commit -m "feat(agy-remote): implement pre-flight git and target checks"
 - Consumes: Validated `TARGET_ID`, `ACTION`, `INSTRUCTIONS`, `CURRENT_BRANCH`, `TIMEOUT`.
 - Produces: `run_remote_execution` building and executing the remote script, capturing output, and handling return codes.
 
-- [ ] **Step 1: Write remote payload execution tests**
+- [x] **Step 1: Write remote payload execution tests**
 
 Create `agy-remote/tests/test_remote_payload.sh`:
 ```bash
@@ -334,7 +334,7 @@ rm -rf "$TMP_BIN_DIR" "$TEST_REPO"
 echo "PASS: Remote execution and summary parsing work"
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 ```bash
@@ -343,7 +343,7 @@ bash agy-remote/tests/test_remote_payload.sh
 ```
 Expected: FAIL (remote payload generation not implemented in `agy-remote.sh`).
 
-- [ ] **Step 3: Implement remote execution and summary formatting**
+- [x] **Step 3: Implement remote execution and summary formatting**
 
 Modify `agy-remote/scripts/agy-remote.sh`:
 - Construct remote command for `/goal` or `continue`:
@@ -397,7 +397,7 @@ gt exec "$TARGET_ID" bash -c "$REMOTE_SCRIPT" > "$TMP_OUT"
 - Locally pull changes: `git pull origin "$CURRENT_BRANCH"`.
 - Display git status and diff stat.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 ```bash
@@ -405,7 +405,7 @@ bash agy-remote/tests/test_remote_payload.sh
 ```
 Expected: PASS.
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
 
 ```bash
 git add agy-remote/scripts/agy-remote.sh agy-remote/tests/test_remote_payload.sh
@@ -424,28 +424,28 @@ git commit -m "feat(agy-remote): implement remote execution payload and output p
 - Consumes: Local working tree after `git pull`.
 - Produces: Formatted git summary, diff stat, and actionable next steps instructions.
 
-- [ ] **Step 1: Add assertions for Git summary and next steps**
+- [x] **Step 1: Add assertions for Git summary and next steps**
 
 Modify `agy-remote/tests/test_remote_payload.sh` to check for:
 - `================ Git Status ===============`
 - `================ Git Diff Stat =============`
 - `================ Suggested Next Steps ===============`
 
-- [ ] **Step 2: Run test to verify failure/coverage**
+- [x] **Step 2: Run test to verify failure/coverage**
 
 Run:
 ```bash
 bash agy-remote/tests/test_remote_payload.sh
 ```
 
-- [ ] **Step 3: Update `agy-remote.sh` with complete post-execution summary**
+- [x] **Step 3: Update `agy-remote.sh` with complete post-execution summary**
 
 Ensure `agy-remote.sh` mirrors `agy-goal.sh`'s clean summary reporting and displays actionable instructions:
 - If uncommitted changes exist locally or pull had modifications.
 - Commands to continue with `agy-remote.sh <target_id> continue "feedback"`.
 - Commands to merge to `main` when finished.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 ```bash
@@ -454,7 +454,7 @@ bash agy-remote/tests/test_remote_payload.sh
 ```
 Expected: All tests PASS.
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
 
 ```bash
 git add agy-remote/scripts/agy-remote.sh agy-remote/tests/test_remote_payload.sh
@@ -471,7 +471,7 @@ git commit -m "feat(agy-remote): add git summary and next steps guidance"
 **Interfaces:**
 - Produces: Complete skill manual specifying commands, workflows, environment variables, and circuit breaker hard-stop rules.
 
-- [ ] **Step 1: Draft `agy-remote/SKILL.md`**
+- [x] **Step 1: Draft `agy-remote/SKILL.md`**
 
 Create `agy-remote/SKILL.md`:
 ```markdown
@@ -533,7 +533,7 @@ Do **NOT** guess or repeatedly edit files without progress. You must **STOP** an
 3. Proposed options/suggestions, and ask the user how to proceed.
 ```
 
-- [ ] **Step 2: Validate documentation completeness and formatting**
+- [x] **Step 2: Validate documentation completeness and formatting**
 
 Check line count and markdown structure:
 ```bash
@@ -541,7 +541,7 @@ wc -l agy-remote/SKILL.md
 ```
 Expected: Clean, standard markdown under 70 lines.
 
-- [ ] **Step 3: Commit changes**
+- [x] **Step 3: Commit changes**
 
 ```bash
 git add agy-remote/SKILL.md
@@ -555,7 +555,7 @@ git commit -m "docs(agy-remote): add skill documentation and circuit breaker rul
 **Files:**
 - Modify: `agy-remote/tests/run_all_tests.sh` (create master test runner)
 
-- [ ] **Step 1: Create master test runner script**
+- [x] **Step 1: Create master test runner script**
 
 Create `agy-remote/tests/run_all_tests.sh`:
 ```bash
@@ -573,7 +573,7 @@ echo "All agy-remote tests passed successfully!"
 chmod +x agy-remote/tests/run_all_tests.sh
 ```
 
-- [ ] **Step 2: Run all tests**
+- [x] **Step 2: Run all tests**
 
 Run:
 ```bash
@@ -581,7 +581,7 @@ bash agy-remote/tests/run_all_tests.sh
 ```
 Expected: `All agy-remote tests passed successfully!`
 
-- [ ] **Step 3: Commit changes**
+- [x] **Step 3: Commit changes**
 
 ```bash
 git add agy-remote/tests/run_all_tests.sh

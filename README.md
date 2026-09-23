@@ -11,6 +11,7 @@
 | 技能名称 | 核心职责 | 适用场景 | 关键依赖 / 工具 | 文档入口 |
 | :--- | :--- | :--- | :--- | :--- |
 | **`agy-goal`** | **跨 Agent 协同实现**<br>Claude Code / 通用 Agent 规划审查 ➔ AGY CLI 自主执行与测试 | 需求/架构计划已由 Superpowers 生成，转交 AGY 自动编写代码、跑测试并多轮迭代完成 | `agy` CLI, Bash, Git | [README / SKILL.md](./agy-goal/SKILL.md) |
+| **`agy-remote`** | **远程容器/主机协同实现**<br>本地规划审查 ➔ `gt exec` 远程容器/主机执行与测试 | 计划已生成，但需在远程容器/机器上执行重型构建与测试，并自动完成 Git 双向同步 | `gt` CLI, `agy` CLI, Bash, Git | [README / SKILL.md](./agy-remote/SKILL.md) |
 | **`man-system`** | **全栈链路追踪与排障**<br>微前端/网关/核心微服务/MQ 跨层定位 | 业务异常排查（如点击无响应、路由丢失、事务回滚、MQ 掉消息）、服务地图生成 | Python 3, 正则扫描器 | [README / SKILL.md](./man-system/SKILL.md) |
 
 ---
@@ -63,6 +64,43 @@ UI 点击 ──► 微前端路由 ──► API 网关 ──► 核心微服�
   - **跨层诊断模式（Cross-Layer Analysis）**：针对用户描述的业务异常，执行标准化的 **5 阶段全栈 SOP**（服务定位 ➔ 调用链展开 ➔ 源码模式比对 ➔ 故障核对表自查 ➔ 结构化诊断报告）。
 - **常见通信范式手册（Call Patterns）**：
   - 内置微前端 API 路由、HTTP/REST/RPC、gRPC/Protobuf、MQ/PubSub 专属排查清单与失败核对表。
+
+---
+
+### 3. `agy-remote`：远程容器/主机 Plan 执行与 Git 自动化同步技能
+
+当开发环境位于云端容器、独立虚拟机或构建宿主机时，`agy-remote` 通过 `gt exec <target_id>` 串联远程 `agy` 执行与本地/远端 Git 分支自动双向同步：
+
+```text
+[Local Machine]                                       [Remote Container (target_id)]
+  │                                                                 │
+  ├─ 1. Check branch (block main/master)                            │
+  ├─ 2. Auto-commit & push plan/changes to origin                   │
+  │     (git push -u origin <branch>)                               │
+  │                                                                 │
+  ├─ 3. Invoke gt exec ────────────────────────────────────────────>│
+  │                                                                 ├─ 3.1 Pull branch (git pull origin <branch>)
+  │                                                                 ├─ 3.2 Run agy (/goal @plan.md OR continue)
+  │                                                                 ├─ 3.3 Commit remote modifications
+  │                                                                 └─ 3.4 Push back to origin (<branch>)
+  │                                                                 │
+  ├─ 4. Receive gt exec exit code & JSON response <─────────────────┘
+  ├─ 5. Sync remote changes locally (git pull origin <branch>)
+  ├─ 6. Output status, conversation ID, duration, and git diff stat
+  └─ 7. Print suggested next steps
+```
+
+#### 🌟 核心特性
+- **双向 Git 分支自动同步**：
+  - 本地预检（拦截误在 `main`/`master` 执行），自动 stage 并 push 分支与计划到远程 upstream。
+  - 远程容器自动拉取分支、执行 `agy`、自动 commit 远程变更并 push 回 remote。
+  - 本地自动 pull 同步远端最新产出，输出清晰的 Git Status 与 Diff 统计。
+- **目标透明与环境变量回退**：
+  - 支持 `agy-remote.sh <target_id> <plan.md>` 或设置环境变量 `export AGY_TARGET=<target_id>` 后直接运行 `agy-remote.sh <plan.md>`。
+  - 支持单次超时覆盖（`AGY_TIMEOUT`，默认 30m）与远端工作目录指定（`REMOTE_WORK_DIR`）。
+- **极速反馈闭环**：
+  - 提供 `continue [instructions...]` 子命令，支持无缝传递审查反馈进行多轮自查与修补。
+  - 内置熔断保护规则（硬限 3 轮 continue、相同错误连发 2 次即停），防止死循环。
 
 ---
 
