@@ -3,7 +3,7 @@
 # agy-run.sh - Multi-turn runner for AGY plan execution
 #
 # Commands:
-#   imp <plan.md>                - Execute implementation plan via /goal
+#   goal <plan.md>               - Execute implementation plan via /goal
 #   continue [instructions...]   - Continue plan implementation or supply feedback
 # ==============================================================================
 
@@ -12,7 +12,7 @@ set -uo pipefail
 show_help() {
   cat <<'EOF'
 Usage:
-  agy-run.sh imp <path/to/plan.md>            Implement a plan file via /goal
+  agy-run.sh goal <path/to/plan.md>           Implement a plan file via /goal
   agy-run.sh continue [instructions...]       Continue plan implementation or supply feedback
   agy-run.sh -h, --help                       Show this help message
 
@@ -44,10 +44,10 @@ case "$ACTION" in
     exit 0
     ;;
 
-  imp)
+  goal)
     if [ $# -lt 1 ] || [ -z "${1:-}" ]; then
-      echo "[agy-run] Error: 'imp' requires a plan file path." >&2
-      echo "Usage: $0 imp path/to/plan.md" >&2
+      echo "[agy-run] Error: 'goal' requires a plan file path." >&2
+      echo "Usage: $0 goal path/to/plan.md" >&2
       exit 1
     fi
     PLAN_FILE="$1"
