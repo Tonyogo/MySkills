@@ -28,7 +28,7 @@
   - `agy-run.sh continue [instructions...]`
   - `agy-run.sh -h | --help`
 
-- [ ] **Step 1: Verify current failure of `goal` command**
+- [x] **Step 1: Verify current failure of `goal` command**
 
 Run:
 ```bash
@@ -36,7 +36,7 @@ Run:
 ```
 Expected: `[agy-run] Error: Unknown command 'goal'.`
 
-- [ ] **Step 2: Update `agy-run/scripts/agy-run.sh` to replace `imp` with `goal`**
+- [x] **Step 2: Update `agy-run/scripts/agy-run.sh` to replace `imp` with `goal`**
 
 Modify `agy-run/scripts/agy-run.sh`:
 - In `show_help()`: change `imp <path/to/plan.md>` to `goal <path/to/plan.md>` with description `Implement a plan file via /goal`.
@@ -45,7 +45,7 @@ Modify `agy-run/scripts/agy-run.sh`:
   - `echo "[agy-run] Error: 'goal' requires a plan file path." >&2`
   - `echo "Usage: $0 goal path/to/plan.md" >&2`
 
-- [ ] **Step 3: Verify CLI behavior with tests**
+- [x] **Step 3: Verify CLI behavior with tests**
 
 Run:
 ```bash
@@ -56,7 +56,7 @@ Run:
 ```
 Expected: All tests pass with exit code 0/expected error messages.
 
-- [ ] **Step 4: Commit changes to Git**
+- [x] **Step 4: Commit changes to Git**
 
 ```bash
 git add agy-run/scripts/agy-run.sh
@@ -73,7 +73,7 @@ git commit -m "refactor(agy-run): replace imp subcommand with goal"
 **Interfaces:**
 - Produces: Streamlined documentation strictly using `goal` and `continue`.
 
-- [ ] **Step 1: Replace content in `agy-run/SKILL.md`**
+- [x] **Step 1: Replace content in `agy-run/SKILL.md`**
 
 Update `agy-run/SKILL.md` to:
 
@@ -128,7 +128,7 @@ Do **NOT** guess or repeatedly edit files without progress. You must **STOP** an
 3. Proposed options/suggestions, and ask the user how to proceed.
 ```
 
-- [ ] **Step 2: Verify document consistency and constraints**
+- [x] **Step 2: Verify document consistency and constraints**
 
 Run:
 ```bash
@@ -137,7 +137,7 @@ grep -E "imp|-c" agy-run/SKILL.md || echo "Clean: No obsolete terms found"
 ```
 Expected: Total lines <= 50, and zero instances of `imp` or `-c`.
 
-- [ ] **Step 3: Commit changes to Git**
+- [x] **Step 3: Commit changes to Git**
 
 ```bash
 git add agy-run/SKILL.md
