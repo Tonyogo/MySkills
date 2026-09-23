@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # agy-remote.sh - Remote runner for AGY plan execution via gt exec
+#
+# LOCAL RESPONSIBILITIES:
+#   1. Ensure feature branch (not main/master)
+#   2. Auto-commit & push local changes/plan to origin
+#   3. Forward execution to remote target via 'gt exec <target_id>'
+#   4. Pull updated code back locally from origin
+#   (Local machine does NOT run agy, only git & gt)
 # ==============================================================================
 
 set -euo pipefail
@@ -21,7 +28,7 @@ Usage:
 Environment Variables:
   AGY_TARGET       Default target ID/container (allows omitting target_id in CLI)
   AGY_TIMEOUT      Execution timeout (default: 30m)
-  REMOTE_WORK_DIR  Remote working directory (default: git root in remote container)
+  REMOTE_WORK_DIR  Remote working directory (default: current directory or git root in container)
 EOF
 }
 
@@ -116,10 +123,10 @@ check_preflight() {
 
 check_preflight
 
-# Push local branch to origin first
+# Step 1: Local side - stage & commit uncommitted changes (such as plan.md), then push to remote branch
 if [ "${AGY_TEST_MOCK:-0}" != "1" ]; then
   if [ -n "$(git status --porcelain)" ]; then
-    echo "[agy-remote] Staging and committing uncommitted changes on '$CURRENT_BRANCH'..."
+    echo "[agy-remote] Staging and committing local changes on '$CURRENT_BRANCH'..."
     git add -A
     git commit -m "docs/feat(agy-remote): auto-commit before remote execution"
   fi
@@ -127,36 +134,38 @@ if [ "${AGY_TEST_MOCK:-0}" != "1" ]; then
   git push -u origin "$CURRENT_BRANCH"
 fi
 
-# Build remote agy prompt
+# Step 2: Build remote command arguments for agy
 if [ "$ACTION" = "continue" ]; then
   if [ -z "$INSTRUCTIONS" ]; then
     REMOTE_PROMPT="Continue implementing the plan. Check current progress, finish all remaining tasks, and ensure all tests pass."
   else
     REMOTE_PROMPT="Continue implementing the plan: ${INSTRUCTIONS}. Finish remaining tasks and ensure tests pass."
   fi
-  AGY_ARGS=(-c -p "$REMOTE_PROMPT")
+  REMOTE_AGY_CMD="agy --mode accept-edits --print-timeout \"$TIMEOUT\" --output-format json -c -p \"$REMOTE_PROMPT\""
 else
   REMOTE_PROMPT="/goal Implement Plan @${ACTION}"
-  AGY_ARGS=(-p "$REMOTE_PROMPT")
+  REMOTE_AGY_CMD="agy --mode accept-edits --print-timeout \"$TIMEOUT\" --output-format json -p \"$REMOTE_PROMPT\""
 fi
 
-ESCAPED_ARGS="$(printf '%q ' "${AGY_ARGS[@]}")"
-
-# Prepare remote execution script
+# Step 3: Dispatch remote payload via gt exec (all compilation/test/agy execution happens inside the container)
 REMOTE_SCRIPT=$(cat <<REMOTE_EOF
 set -e
 if [ -n "$REMOTE_DIR" ]; then
   cd "$REMOTE_DIR"
 fi
+
+# Fetch and sync the feature branch in remote environment
 git fetch origin "$CURRENT_BRANCH"
 git checkout "$CURRENT_BRANCH"
 git pull origin "$CURRENT_BRANCH"
 
-agy --mode accept-edits --print-timeout "$TIMEOUT" --output-format json $ESCAPED_ARGS
+# Execute agy on the remote target
+$REMOTE_AGY_CMD
 
+# Push any changes made by agy back to origin
 if [ -n "\$(git status --porcelain)" ]; then
   git add -A
-  git commit -m "feat(agy-remote): update code via agy"
+  git commit -m "feat(agy-remote): update code via remote agy"
   git push origin "$CURRENT_BRANCH"
 fi
 REMOTE_EOF
@@ -165,11 +174,11 @@ REMOTE_EOF
 TMP_OUT="$(mktemp -t agy-remote-out.XXXXXX)"
 trap 'rm -f "$TMP_OUT"' EXIT
 
-echo "[agy-remote] Executing on remote target '$TARGET_ID'..."
+echo "[agy-remote] Forwarding execution to remote target '$TARGET_ID' via gt exec..."
 GT_EXIT=0
 gt exec "$TARGET_ID" bash -c "$REMOTE_SCRIPT" > "$TMP_OUT" || GT_EXIT=$?
 
-# Parse JSON output via python3 and output Status, Conversation ID, Duration, and text response.
+# Step 4: Parse remote JSON response output
 if [ -s "$TMP_OUT" ]; then
   python3 -c '
 import json, sys
@@ -206,13 +215,13 @@ except Exception:
 ' "$TMP_OUT"
 fi
 
-# Locally pull changes
+# Step 5: Local side - pull back remote changes
 if [ "${AGY_TEST_MOCK:-0}" != "1" ]; then
   echo -e "\n[agy-remote] Pulling remote changes from origin/$CURRENT_BRANCH..."
   git pull origin "$CURRENT_BRANCH" || true
 fi
 
-# Display git status, diff stat, and suggested next steps
+# Step 6: Post-Execution Summary
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo -e "\n================ Git Status ================"
   git status --short
@@ -225,7 +234,7 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   [ -n "$CURRENT_BRANCH" ] && echo "Current Branch: $CURRENT_BRANCH"
 
   if [ -n "$HAS_UNCOMMITTED" ]; then
-    echo "1. Uncommitted changes detected:"
+    echo "1. Uncommitted changes detected locally:"
     echo "   git add -A && git commit -m \"feat: <description>\""
   else
     echo "1. Working tree:     clean (all changes committed)"
@@ -243,5 +252,3 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 fi
 
 exit "$GT_EXIT"
-
-
