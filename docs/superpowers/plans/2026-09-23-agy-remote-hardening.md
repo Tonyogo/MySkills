@@ -359,7 +359,7 @@ git commit -m "feat(agy-remote): implement targeted local plan staging"
 **Interfaces:**
 - Produces: Updated skill manual and root README reflecting zero-argument target and conventional `/workspace/<project>` directory.
 
-- [ ] **Step 1: Update `agy-remote/SKILL.md`**
+- [x] **Step 1: Update `agy-remote/SKILL.md`**
 
 Reflect the new command signatures:
 ```bash
@@ -371,18 +371,18 @@ agy-remote.sh continue [optional instructions...]
 ```
 Document default `agy-remote-server` and `/workspace/<project>`.
 
-- [ ] **Step 2: Update root `README.md`**
+- [x] **Step 2: Update root `README.md`**
 
 Update `agy-remote` row and details in `README.md`.
 
-- [ ] **Step 3: Verify formatting and line counts**
+- [x] **Step 3: Verify formatting and line counts**
 
 Run:
 ```bash
 git diff agy-remote/SKILL.md README.md
 ```
 
-- [ ] **Step 4: Commit changes**
+- [x] **Step 4: Commit changes**
 
 ```bash
 git add agy-remote/SKILL.md README.md

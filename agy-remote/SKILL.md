@@ -12,15 +12,13 @@ Execute and iterate on implementation plans remotely on target containers or dev
 Run the runner script from `./agy-remote/scripts/agy-remote.sh` (or your configured skills path).
 
 > [!NOTE]
+> 默认目标容器为 `agy-remote-server`（可通过环境变量 `AGY_TARGET` 覆盖）。
+> 默认远端工作目录为 `/workspace/<project>`（基于当前本地仓库名动态推导，可通过 `REMOTE_WORK_DIR` 覆盖）。
 > 默认单次任务超时时间为 **30 分钟**（可通过环境变量 `AGY_TIMEOUT` 调整，例如 `AGY_TIMEOUT=45m`）。
-> 可以通过设置 `AGY_TARGET` 环境变量来设定默认目标 ID，省略每次命令行输入。
 
 ### 1. Implement Plan Remotely
 Start executing a written markdown plan on the remote target:
 ```bash
-agy-remote.sh <target_id> path/to/plan.md
-
-# If AGY_TARGET is set:
 agy-remote.sh path/to/plan.md
 ```
 
@@ -28,10 +26,10 @@ agy-remote.sh path/to/plan.md
 Continue the plan remotely to finish remaining tasks or supply targeted feedback:
 ```bash
 # Continue without extra instructions:
-agy-remote.sh <target_id> continue
+agy-remote.sh continue
 
 # Continue with specific feedback or fix instructions:
-agy-remote.sh <target_id> continue "Fix test failure in user_spec: assertion failed at line 42"
+agy-remote.sh continue "Fix test failure in user_spec: assertion failed at line 42"
 ```
 
 ---
@@ -39,10 +37,10 @@ agy-remote.sh <target_id> continue "Fix test failure in user_spec: assertion fai
 ## Workflow & Circuit Breaker
 
 1. **Pre-flight**: Ensure you are on a feature branch (not `main`/`master`). The runner pushes your plan to the remote branch.
-2. **Execute**: The runner syncs the branch inside `gt exec <target_id>`, runs `agy`, and commits remote code changes back.
+2. **Execute**: The runner syncs the branch inside `gt exec agy-remote-server`, runs `agy`, and commits remote code changes back.
 3. **Sync**: The runner pulls the remote changes back to your local repository.
 4. **Verify**: Check `git diff` and run project tests locally.
-5. **Iterate**: If tasks remain incomplete or tests fail, run `agy-remote.sh <target_id> continue ["feedback"]`.
+5. **Iterate**: If tasks remain incomplete or tests fail, run `agy-remote.sh continue ["feedback"]`.
 
 ### 🛑 Hard Stop & Escalation Rules
 Do **NOT** guess or repeatedly edit files without progress. You must **STOP** and ask the user for a decision if:

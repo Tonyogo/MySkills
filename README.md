@@ -69,20 +69,21 @@ UI 点击 ──► 微前端路由 ──► API 网关 ──► 核心微服�
 
 ### 3. `agy-remote`：远程容器/主机 Plan 执行与 Git 自动化同步技能
 
-当开发环境位于云端容器、独立虚拟机或构建宿主机时，`agy-remote` 通过 `gt exec <target_id>` 串联远程 `agy` 执行与本地/远端 Git 分支自动双向同步：
+当开发环境位于云端容器、独立虚拟机或构建宿主机时，`agy-remote` 默认通过 `gt exec agy-remote-server` 串联远程 `agy` 执行与本地/远端 Git 分支自动双向同步：
 
 ```text
-[Local Machine]                                       [Remote Container (target_id)]
+[Local Machine]                                       [Remote Container (agy-remote-server)]
   │                                                                 │
   ├─ 1. Check branch (block main/master)                            │
-  ├─ 2. Auto-commit & push plan/changes to origin                   │
+  ├─ 2. Targeted stage & push plan to origin                        │
   │     (git push -u origin <branch>)                               │
   │                                                                 │
-  ├─ 3. Invoke gt exec ────────────────────────────────────────────>│
-  │                                                                 ├─ 3.1 Pull branch (git pull origin <branch>)
-  │                                                                 ├─ 3.2 Run agy (/goal @plan.md OR continue)
-  │                                                                 ├─ 3.3 Commit remote modifications
-  │                                                                 └─ 3.4 Push back to origin (<branch>)
+  ├─ 3. Invoke gt exec (Base64 prompt payload) ────────────────────>│
+  │                                                                 ├─ 3.1 Verify /workspace/<project> exists
+  │                                                                 ├─ 3.2 Pull branch (git pull origin <branch>)
+  │                                                                 ├─ 3.3 Safely decode Base64 prompt & run agy
+  │                                                                 ├─ 3.4 Commit remote modifications
+  │                                                                 └─ 3.5 Push back to origin (<branch>)
   │                                                                 │
   ├─ 4. Receive gt exec exit code & JSON response <─────────────────┘
   ├─ 5. Sync remote changes locally (git pull origin <branch>)
@@ -91,13 +92,15 @@ UI 点击 ──► 微前端路由 ──► API 网关 ──► 核心微服�
 ```
 
 #### 🌟 核心特性
-- **双向 Git 分支自动同步**：
-  - 本地预检（拦截误在 `main`/`master` 执行），自动 stage 并 push 分支与计划到远程 upstream。
+- **极简零参目标与约定式目录**：
+  - 命令行完全对齐 `agy-goal`：`agy-remote.sh <plan.md>` 与 `agy-remote.sh continue [instructions...]`，默认目标为 `agy-remote-server`（支持 `AGY_TARGET` 覆盖）。
+  - 约定式远端工作目录：基于当前本地 Git 仓库名自动解析为 `/workspace/<project>`（支持 `REMOTE_WORK_DIR` 覆盖），并在容器内执行前严格校验目录存在性。
+- **Base64 Prompt 传输防损**：
+  - 本地自动将 Prompt 编码为 Base64 传递，远端容器内安全解码执行，彻底杜绝单双引号、反引号及嵌套转义导致的脚本语法报错。
+- **双向 Git 分支自动同步与精准暂存**：
+  - 本地预检（拦截误在 `main`/`master` 执行），仅精准暂存与提交当前 Plan 文件，避免污染无关的本地脏工作区。
   - 远程容器自动拉取分支、执行 `agy`、自动 commit 远程变更并 push 回 remote。
   - 本地自动 pull 同步远端最新产出，输出清晰的 Git Status 与 Diff 统计。
-- **目标透明与环境变量回退**：
-  - 支持 `agy-remote.sh <target_id> <plan.md>` 或设置环境变量 `export AGY_TARGET=<target_id>` 后直接运行 `agy-remote.sh <plan.md>`。
-  - 支持单次超时覆盖（`AGY_TIMEOUT`，默认 30m）与远端工作目录指定（`REMOTE_WORK_DIR`）。
 - **极速反馈闭环**：
   - 提供 `continue [instructions...]` 子命令，支持无缝传递审查反馈进行多轮自查与修补。
   - 内置熔断保护规则（硬限 3 轮 continue、相同错误连发 2 次即停），防止死循环。
