@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# agy-run.sh - Multi-turn runner for AGY plan execution
+# agy-goal.sh - Multi-turn runner for AGY plan execution
 #
 # Commands:
-#   goal <plan.md>               - Execute implementation plan via /goal
+#   [goal|run] <plan.md>         - Execute implementation plan via /goal (direct or subcommand)
 #   continue [instructions...]   - Continue plan implementation or supply feedback
 # ==============================================================================
 
@@ -12,9 +12,10 @@ set -uo pipefail
 show_help() {
   cat <<'EOF'
 Usage:
-  agy-run.sh goal <path/to/plan.md>           Implement a plan file via /goal
-  agy-run.sh continue [instructions...]       Continue plan implementation or supply feedback
-  agy-run.sh -h, --help                       Show this help message
+  agy-goal.sh <path/to/plan.md>               Implement a plan file via /goal (direct)
+  agy-goal.sh goal <path/to/plan.md>          Implement a plan file (explicit subcommand)
+  agy-goal.sh continue [instructions...]      Continue plan implementation or supply feedback
+  agy-goal.sh -h, --help                      Show this help message
 
 Environment:
   AGY_TIMEOUT                                 Execution timeout (default: 30m)
@@ -31,7 +32,7 @@ shift
 
 # Check agy CLI
 if ! command -v agy >/dev/null 2>&1; then
-  echo "[agy-run] Error: 'agy' CLI is not found in PATH." >&2
+  echo "[agy-goal] Error: 'agy' CLI is not found in PATH." >&2
   exit 127
 fi
 
@@ -44,15 +45,15 @@ case "$ACTION" in
     exit 0
     ;;
 
-  goal)
+  goal|run|imp)
     if [ $# -lt 1 ] || [ -z "${1:-}" ]; then
-      echo "[agy-run] Error: 'goal' requires a plan file path." >&2
-      echo "Usage: $0 goal path/to/plan.md" >&2
+      echo "[agy-goal] Error: '$ACTION' requires a plan file path." >&2
+      echo "Usage: $0 [goal|run] <path/to/plan.md>" >&2
       exit 1
     fi
     PLAN_FILE="$1"
     if [ ! -f "$PLAN_FILE" ]; then
-      echo "[agy-run] Error: Plan file not found: $PLAN_FILE" >&2
+      echo "[agy-goal] Error: Plan file not found: $PLAN_FILE" >&2
       exit 1
     fi
     echo "=== Running AGY Plan Implementation ==="
@@ -74,9 +75,17 @@ case "$ACTION" in
     ;;
 
   *)
-    echo "[agy-run] Error: Unknown command '$ACTION'." >&2
-    show_help >&2
-    exit 1
+    # Check if ACTION itself is a plan file
+    if [ -f "$ACTION" ]; then
+      PLAN_FILE="$ACTION"
+      echo "=== Running AGY Plan Implementation ==="
+      echo "Plan: $PLAN_FILE"
+      PROMPT="/goal Implement Plan @${PLAN_FILE}"
+    else
+      echo "[agy-goal] Error: Unknown command or plan file not found: '$ACTION'." >&2
+      show_help >&2
+      exit 1
+    fi
     ;;
 esac
 
@@ -88,7 +97,7 @@ TMP_OUT="$(mktemp -t agy-out.XXXXXX)"
 trap 'rm -f "$TMP_OUT"' EXIT
 
 CMD_STR="$(printf '%q ' "${CMD[@]}")"
-echo "[agy-run] Executing: ${CMD_STR% }"
+echo "[agy-goal] Executing: ${CMD_STR% }"
 AGY_EXIT=0
 "${CMD[@]}" > "$TMP_OUT" || AGY_EXIT=$?
 

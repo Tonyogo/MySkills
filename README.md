@@ -10,14 +10,14 @@
 
 | 技能名称 | 核心职责 | 适用场景 | 关键依赖 / 工具 | 文档入口 |
 | :--- | :--- | :--- | :--- | :--- |
-| **`agy-run`** | **跨 Agent 协同实现**<br>Claude Code / 通用 Agent 规划审查 ➔ AGY CLI 自主执行与测试 | 需求/架构计划已由 Superpowers 生成，转交 AGY 自动编写代码、跑测试并多轮迭代完成 | `agy` CLI, Bash, Git | [README / SKILL.md](./agy-run/SKILL.md) |
+| **`agy-goal`** | **跨 Agent 协同实现**<br>Claude Code / 通用 Agent 规划审查 ➔ AGY CLI 自主执行与测试 | 需求/架构计划已由 Superpowers 生成，转交 AGY 自动编写代码、跑测试并多轮迭代完成 | `agy` CLI, Bash, Git | [README / SKILL.md](./agy-goal/SKILL.md) |
 | **`man-system`** | **全栈链路追踪与排障**<br>微前端/网关/核心微服务/MQ 跨层定位 | 业务异常排查（如点击无响应、路由丢失、事务回滚、MQ 掉消息）、服务地图生成 | Python 3, 正则扫描器 | [README / SKILL.md](./man-system/SKILL.md) |
 
 ---
 
 ## 📦 技能详解
 
-### 1. `agy-run`：Claude Code / 通用 Agent 与 AGY 协作实现技能
+### 1. `agy-goal`：Claude Code / 通用 Agent 与 AGY 协作实现技能
 
 该技能将复杂开发任务划分为**规划**、**实施**与**审查**三个明确边界，由外部审查 Agent（Claude Code / 通用 Agent）负责架构规划与验收，AGY CLI 负责自主编写代码并驱动测试闭环：
 
@@ -41,10 +41,10 @@ Planning Agent (Superpowers)       AGY (Implementation)       Reviewer Agent (Cl
   - **AGY CLI**：决定 *How to implement*（读写文件、依赖安装、运行测试、自查自纠、符合规范的 Commit）。
   - **Reviewer Agent (Claude Code / 通用 Agent)**：负责 *Independent Review*（执行 4 层门禁验收：执行健康度、Plan 任务勾选、自动化测试运行与 Git Diff 代码审查，自主驱动 continue 闭环）。
 - **轻量极简双命令**：
-  - **`imp <plan.md>`**：利用 AGY 原生 `/goal` 深度实现指定计划文件，自带完整性自审机制。
+  - **`goal <plan.md>`（或直接 `<plan.md>`）**：利用 AGY 原生 `/goal` 深度实现指定计划文件，自带完整性自审机制。
   - **`continue [instructions...]`**：利用 AGY 原生 `-c` 自动续接最近一次会话，支持多轮反馈闭环与自查补全，实现全自主迭代完成。
 - **即插即用 Runner 引擎**：
-  - 核心脚本 [`scripts/agy-run.sh`](./agy-run/scripts/agy-run.sh) 提供严格的参数校验、执行耗时汇总以及自动化的 Git Status、Diff 统计与后续操作引导。
+  - 核心脚本 [`scripts/agy-goal.sh`](./agy-goal/scripts/agy-goal.sh) 提供严格的参数校验、执行耗时汇总以及自动化的 Git Status、Diff 统计与后续操作引导。
 
 ---
 
@@ -71,7 +71,7 @@ UI 点击 ──► 微前端路由 ──► API 网关 ──► 核心微服�
 你可以将本仓库中的技能接入到本地常用的 AI 智能体开发环境中：
 
 ### 方式一：接入 Claude Code
-适合使用 Claude Code 作为主控 Agent，调用 `agy-run` 驱动 AGY CLI 编写代码，或调用 `man-system` 进行全栈排障：
+适合使用 Claude Code 作为主控 Agent，调用 `agy-goal` 驱动 AGY CLI 编写代码，或调用 `man-system` 进行全栈排障：
 
 #### 1. 全局生效（推荐）
 将目标技能软链接到 Claude Code 的全局技能配置目录（`~/.claude/skills/`）：
@@ -80,7 +80,7 @@ UI 点击 ──► 微前端路由 ──► API 网关 ──► 核心微服�
 mkdir -p ~/.claude/skills
 
 # 挂载技能
-ln -sfn /path/to/MySkills/agy-run ~/.claude/skills/agy-run
+ln -sfn /path/to/MySkills/agy-goal ~/.claude/skills/agy-goal
 ln -sfn /path/to/MySkills/man-system ~/.claude/skills/man-system
 ```
 
@@ -89,7 +89,7 @@ ln -sfn /path/to/MySkills/man-system ~/.claude/skills/man-system
 
 ```bash
 mkdir -p .claude/skills
-ln -sfn /path/to/MySkills/agy-run .claude/skills/agy-run
+ln -sfn /path/to/MySkills/agy-goal .claude/skills/agy-goal
 ln -sfn /path/to/MySkills/man-system .claude/skills/man-system
 ```
 
@@ -100,7 +100,7 @@ ln -sfn /path/to/MySkills/man-system .claude/skills/man-system
 
 > [!NOTE]
 > - `man-system`（全栈排障）完全支持各环境原生直接运行。
-> - `agy-run` 专用于外部 Agent（如 Claude Code / 通用 Agent）调度驱动 AGY CLI（在 AGY / Antigravity 原生内部无需挂载 `agy-run`）。
+> - `agy-goal` 专用于外部 Agent（如 Claude Code / 通用 Agent）调度驱动 AGY CLI（在 AGY / Antigravity 原生内部无需挂载 `agy-goal`）。
 
 #### 1. 工作区专属配置（推荐）
 在工程代码库根目录下创建 `.agent/skills/`（兼容 `.agents/skills/`）并软链接：
@@ -109,7 +109,7 @@ ln -sfn /path/to/MySkills/man-system .claude/skills/man-system
 mkdir -p .agent/skills
 
 # 挂载技能
-ln -sfn /path/to/MySkills/agy-run .agent/skills/agy-run
+ln -sfn /path/to/MySkills/agy-goal .agent/skills/agy-goal
 ln -sfn /path/to/MySkills/man-system .agent/skills/man-system
 ```
 
@@ -120,7 +120,7 @@ ln -sfn /path/to/MySkills/man-system .agent/skills/man-system
 mkdir -p ~/.agent/skills
 
 # 挂载技能
-ln -sfn /path/to/MySkills/agy-run ~/.agent/skills/agy-run
+ln -sfn /path/to/MySkills/agy-goal ~/.agent/skills/agy-goal
 ln -sfn /path/to/MySkills/man-system ~/.agent/skills/man-system
 ```
 
