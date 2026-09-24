@@ -97,8 +97,7 @@ AGY_EXIT=0
 "${CMD[@]}" > "$TMP_OUT" || AGY_EXIT=$?
 
 # Parse output and display summary
-if [ -s "$TMP_OUT" ]; then
-  python3 -c '
+python3 -c '
 import json, sys
 
 exit_code = int(sys.argv[2])
@@ -120,8 +119,13 @@ try:
     
     is_completed = (exit_code == 0 and status == "COMPLETED")
 except Exception:
-    with open(sys.argv[1]) as f:
-        print(f.read())
+    try:
+        with open(sys.argv[1]) as f:
+            raw = f.read().strip()
+            if raw:
+                print(raw)
+    except Exception:
+        pass
     is_completed = False
 
 print("\n==================== DECISION GATE ====================")
@@ -135,7 +139,6 @@ else:
     print("Next:     Run: agy-goal.sh continue \"<1-2 sentence issue summary>\"")
 print("=======================================================\n")
 ' "$TMP_OUT" "$AGY_EXIT"
-fi
 
 # Post-Execution Git Summary & Next Steps
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
