@@ -37,7 +37,7 @@
 - Consumes: `./agy-goal/scripts/agy-goal.sh`
 - Produces: Executable test runner scripts validating CLI arguments and decision gate rendering.
 
-- [ ] **Step 1: Write the failing test script**
+- [x] **Step 1: Write the failing test script**
 
 Create `agy-goal/tests/test_decision_gate.sh`:
 ```bash
@@ -151,7 +151,7 @@ echo "Running agy-goal test suite..."
 echo "All tests completed successfully."
 ```
 
-- [ ] **Step 2: Make test scripts executable and run to verify**
+- [x] **Step 2: Make test scripts executable and run to verify**
 
 Run:
 ```bash
@@ -160,7 +160,7 @@ chmod +x agy-goal/tests/test_decision_gate.sh agy-goal/tests/run_all_tests.sh
 ```
 Expected: PASS with "All tests completed successfully."
 
-- [ ] **Step 3: Commit test suite**
+- [x] **Step 3: Commit test suite**
 
 ```bash
 git add agy-goal/tests/
@@ -178,7 +178,7 @@ git commit -m "test(agy-goal): add test suite for cli and decision gate logic"
 - Consumes: AGY exit code `$AGY_EXIT`, `$TMP_OUT` json file.
 - Produces: Printed summary block containing `[DECISION GATE]` with unambiguous instruction for host agent.
 
-- [ ] **Step 1: Write an end-to-end integration test in `agy-goal/tests/test_script_gate_integration.sh`**
+- [x] **Step 1: Write an end-to-end integration test in `agy-goal/tests/test_script_gate_integration.sh`**
 
 Create `agy-goal/tests/test_script_gate_integration.sh`:
 ```bash
@@ -199,7 +199,7 @@ fi
 ```
 Make executable: `chmod +x agy-goal/tests/test_script_gate_integration.sh`
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 ```bash
@@ -207,7 +207,7 @@ Run:
 ```
 Expected: FAIL with "FAIL: DECISION GATE is missing from agy-goal.sh"
 
-- [ ] **Step 3: Update `agy-goal/scripts/agy-goal.sh` to include `[DECISION GATE]`**
+- [x] **Step 3: Update `agy-goal/scripts/agy-goal.sh` to include `[DECISION GATE]`**
 
 Replace lines 99-121 in `agy-goal/scripts/agy-goal.sh` with:
 ```bash
@@ -253,7 +253,7 @@ print("=======================================================\n")
 fi
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 ```bash
@@ -262,7 +262,7 @@ Run:
 ```
 Expected: PASS
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
 
 ```bash
 git add agy-goal/scripts/agy-goal.sh agy-goal/tests/test_script_gate_integration.sh
@@ -280,7 +280,7 @@ git commit -m "feat(agy-goal): add DECISION GATE block to post-execution summary
 - Consumes: `docs/superpowers/specs/2026-09-24-agy-goal-fast-decision-gate-design.md`
 - Produces: Clean, authoritative skill specification with zero manual testing instructions.
 
-- [ ] **Step 1: Check existing `SKILL.md` for prohibited patterns**
+- [x] **Step 1: Check existing `SKILL.md` for prohibited patterns**
 
 Run:
 ```bash
@@ -288,7 +288,7 @@ grep -n "run project tests independently" agy-goal/SKILL.md || true
 ```
 Expected: Matches line 38 in current `SKILL.md`.
 
-- [ ] **Step 2: Rewrite `agy-goal/SKILL.md`**
+- [x] **Step 2: Rewrite `agy-goal/SKILL.md`**
 
 Replace `agy-goal/SKILL.md` with:
 ```markdown
@@ -369,7 +369,7 @@ You must **STOP** immediately and escalate to the user if:
 3. Proposed options/suggestions, and ask the user how to proceed.
 ```
 
-- [ ] **Step 3: Verify negative constraints and prohibited terms are absent**
+- [x] **Step 3: Verify negative constraints and prohibited terms are absent**
 
 Run:
 ```bash
@@ -379,7 +379,7 @@ grep -n "DECISION GATE" agy-goal/SKILL.md
 ```
 Expected: Prohibited phrase removed, new sections present.
 
-- [ ] **Step 4: Commit changes**
+- [x] **Step 4: Commit changes**
 
 ```bash
 git add agy-goal/SKILL.md
@@ -397,7 +397,7 @@ git commit -m "docs(agy-goal): rewrite SKILL.md with fast decision gate and nega
 - Consumes: All tests in `agy-goal/tests/`.
 - Produces: Exit code 0 on complete pass.
 
-- [ ] **Step 1: Add integration test to `run_all_tests.sh`**
+- [x] **Step 1: Add integration test to `run_all_tests.sh`**
 
 Update `agy-goal/tests/run_all_tests.sh`:
 ```bash
@@ -411,7 +411,7 @@ echo "Running agy-goal test suite..."
 echo "All tests completed successfully."
 ```
 
-- [ ] **Step 2: Run all tests**
+- [x] **Step 2: Run all tests**
 
 Run:
 ```bash
@@ -419,7 +419,7 @@ Run:
 ```
 Expected: PASS with "All tests completed successfully."
 
-- [ ] **Step 3: Commit final test runner update**
+- [x] **Step 3: Commit final test runner update**
 
 ```bash
 git add agy-goal/tests/run_all_tests.sh
