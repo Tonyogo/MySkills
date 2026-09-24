@@ -50,23 +50,26 @@ agy-goal.sh continue "Fix test failure in user_spec: assertion failed at line 42
 
 ## Agent Verification Protocol (1-Turn Decision)
 
-The script formats and prints AGY's execution response (Status, Conversation ID, Duration, and Response body). After execution completes, the host agent evaluates two primary sources of truth:
-1. **AGY Response Summary**: Check whether all tasks in the plan are explicitly declared completed, or if any tasks remain unfinished, timed out, or threw errors.
-2. **Git Changes (Inspected by Host Agent via `git status`, `git diff --stat`, or `git log -n 1`)**: Confirm that actual code changes/commits exist and match the scope of the plan.
+The script formats and prints AGY's execution response (Status, Conversation ID, Duration, `Goal Complete` marker, and Response body). After execution completes, the host agent evaluates two primary sources of truth:
+
+1. **`Goal Complete` Marker & Response Summary**:
+   - **Fast-Path Check**: Check if `Goal Complete: YES` (AGY explicitly printed `<!-- GOAL_COMPLETE -->`). This is the deterministic handshake indicating AGY completed all planned tasks and tests.
+   - If `Goal Complete: NO`, check the response summary for incomplete tasks, timeouts, or error messages.
+2. **Git Changes (Inspected via `git status`, `git diff --stat`, or `git log -n 1`)**:
+   - Confirm that actual code changes and commits exist and align with the plan.
 
 ### Decision Gate:
 
-- **Case A: Goal Achieved (PASS)**
-  - All tasks in the plan are implemented and confirmed by AGY.
-  - Git changes and commits match the expected scope.
-  - **Action**: Declare task completion, summarize the completed work and Git commits, and guide the user on next steps (Commit/Push/PR).
+- **Case A: Goal Achieved (PASS - Fast-Path)**
+  - `Goal Complete: YES` (or `<!-- GOAL_COMPLETE -->` present) and Git changes match the plan.
+  - **Action**: Declare completion immediately, summarize completed tasks and Git commits, and advise the user on next steps (Commit/Push/PR).
   - **🚫 Rule**: Do NOT run any additional tests.
 
 - **Case B: Incomplete, Error, or Scope Miss (ITERATE)**
-  - Unfinished tasks remain, tests failed, or code changes are missing.
+  - `Goal Complete: NO`, unfinished tasks remain, tests failed, or expected code changes are absent.
   - **Action**: Extract a 1–2 sentence summary of the exact blocker or unfinished task, and immediately run:
     ```bash
-    agy-goal.sh continue "<1-2 sentence issue summary>"
+    agy-goal.sh continue "<1-2 sentence issue summary>. Finish remaining tasks until <!-- GOAL_COMPLETE --> is reached."
     ```
   - **🚫 Rule**: Do NOT attempt to fix code manually.
 

@@ -106,13 +106,16 @@ try:
     cid = data.get("conversation_id", "")
     status = data.get("status", "UNKNOWN")
     duration = data.get("duration_seconds", 0)
+    response_text = data.get("response", "").strip()
+    goal_complete = "YES" if "GOAL_COMPLETE" in response_text else "NO"
     print("\n" + "=" * 60)
     print("Status:         ", status)
     if cid:
         print("Conversation ID:", cid)
     print(f"Duration:        {duration:.1f}s")
+    print("Goal Complete:  ", goal_complete)
     print("=" * 60 + "\n")
-    print(data.get("response", "").strip())
+    print(response_text)
 except Exception:
     try:
         with open(sys.argv[1]) as f:

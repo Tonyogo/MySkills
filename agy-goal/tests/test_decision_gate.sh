@@ -27,7 +27,7 @@ cat << 'EOF' > "$MOCK_DIR/agy"
 #!/usr/bin/env bash
 case "${MOCK_AGY_MODE:-completed}" in
   completed)
-    echo '{"conversation_id":"mock-1","status":"SUCCESS","duration_seconds":1.5,"response":"All plan tasks implemented successfully."}'
+    echo '{"conversation_id":"mock-1","status":"SUCCESS","duration_seconds":1.5,"response":"All plan tasks implemented successfully.\n<!-- GOAL_COMPLETE -->"}'
     exit 0
     ;;
   error)
@@ -53,12 +53,14 @@ echo "=== Test 4: E2E Output rendering for success status ==="
 OUT="$(PATH="$MOCK_DIR:$PATH" MOCK_AGY_MODE=completed "$BIN" "$DUMMY_PLAN")"
 echo "$OUT" | grep -q "Status:          SUCCESS"
 echo "$OUT" | grep -q "Conversation ID: mock-1"
+echo "$OUT" | grep -q "Goal Complete:   YES"
 echo "$OUT" | grep -q "All plan tasks implemented successfully."
 echo "PASS: Success status rendered correctly"
 
 echo "=== Test 5: E2E Output rendering for error status ==="
 OUT="$(PATH="$MOCK_DIR:$PATH" MOCK_AGY_MODE=error "$BIN" "$DUMMY_PLAN" 2>&1 || true)"
 echo "$OUT" | grep -q "Status:          ERROR"
+echo "$OUT" | grep -q "Goal Complete:   NO"
 echo "$OUT" | grep -q "Test failed on line 12."
 echo "PASS: Error status rendered correctly"
 
