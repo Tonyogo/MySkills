@@ -2,7 +2,7 @@
 # ==============================================================================
 # agy-goal.sh - Multi-turn runner for AGY plan execution
 #
-# Default Timeout: 30m (configurable via AGY_TIMEOUT environment variable)
+# Execution Timeout: 20m
 #
 # Commands:
 #   <plan.md>                    - Execute implementation plan via /goal
@@ -11,7 +11,7 @@
 
 set -uo pipefail
 
-TIMEOUT="${AGY_TIMEOUT:-30m}"
+TIMEOUT="20m"
 
 show_help() {
   cat <<'EOF'
@@ -21,7 +21,7 @@ Usage:
   agy-goal.sh -h, --help                      Show this help message
 
 Notes:
-  - Default execution timeout is 30 minutes. You can override it via AGY_TIMEOUT (e.g. AGY_TIMEOUT=45m).
+  - Execution timeout is set to 20 minutes.
 EOF
 }
 
