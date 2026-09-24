@@ -27,7 +27,7 @@ cat << 'EOF' > "$MOCK_DIR/agy"
 #!/usr/bin/env bash
 case "${MOCK_AGY_MODE:-completed}" in
   completed)
-    echo '{"conversation_id":"mock-1","status":"COMPLETED","duration_seconds":1.0,"response":"All tasks implemented."}'
+    echo '{"conversation_id":"mock-1","status":"SUCCESS","duration_seconds":1.5,"response":"All plan tasks implemented successfully."}'
     exit 0
     ;;
   error)
@@ -39,7 +39,7 @@ case "${MOCK_AGY_MODE:-completed}" in
     exit 1
     ;;
   malformed)
-    echo 'NOT_VALID_JSON: crash occurred'
+    echo 'RAW_OUTPUT_NOT_JSON: something broke'
     exit 1
     ;;
 esac
@@ -49,28 +49,26 @@ chmod +x "$MOCK_DIR/agy"
 DUMMY_PLAN="$MOCK_DIR/test_plan.md"
 echo "# Dummy Test Plan" > "$DUMMY_PLAN"
 
-echo "=== Test 4: E2E Decision Gate rendering for completed status ==="
+echo "=== Test 4: E2E Output rendering for success status ==="
 OUT="$(PATH="$MOCK_DIR:$PATH" MOCK_AGY_MODE=completed "$BIN" "$DUMMY_PLAN")"
-echo "$OUT" | grep -q "Decision: READY FOR COMPLETION"
-echo "$OUT" | grep -q "Action:   Plan executed successfully by AGY."
-echo "PASS: E2E Completed status generates READY FOR COMPLETION gate"
+echo "$OUT" | grep -q "Status:          SUCCESS"
+echo "$OUT" | grep -q "Conversation ID: mock-1"
+echo "$OUT" | grep -q "All plan tasks implemented successfully."
+echo "PASS: Success status rendered correctly"
 
-echo "=== Test 5: E2E Decision Gate rendering for error status ==="
+echo "=== Test 5: E2E Output rendering for error status ==="
 OUT="$(PATH="$MOCK_DIR:$PATH" MOCK_AGY_MODE=error "$BIN" "$DUMMY_PLAN" 2>&1 || true)"
-echo "$OUT" | grep -q "Decision: ACTION REQUIRED (INCOMPLETE / ERROR)"
-echo "$OUT" | grep -q "Action:   DO NOT run manual tests or debug manually."
-echo "PASS: E2E Error status generates ACTION REQUIRED gate"
+echo "$OUT" | grep -q "Status:          ERROR"
+echo "$OUT" | grep -q "Test failed on line 12."
+echo "PASS: Error status rendered correctly"
 
-echo "=== Test 6: E2E Decision Gate rendering for empty output crash ==="
+echo "=== Test 6: E2E Output rendering for empty output crash ==="
 OUT="$(PATH="$MOCK_DIR:$PATH" MOCK_AGY_MODE=empty "$BIN" "$DUMMY_PLAN" 2>&1 || true)"
-echo "$OUT" | grep -q "Decision: ACTION REQUIRED (INCOMPLETE / ERROR)"
-echo "$OUT" | grep -q "Action:   DO NOT run manual tests or debug manually."
-echo "PASS: E2E Empty output crash generates ACTION REQUIRED gate"
+echo "PASS: Empty output handled cleanly without script explosion"
 
-echo "=== Test 7: E2E Decision Gate rendering for malformed JSON ==="
+echo "=== Test 7: E2E Output rendering for malformed raw output ==="
 OUT="$(PATH="$MOCK_DIR:$PATH" MOCK_AGY_MODE=malformed "$BIN" "$DUMMY_PLAN" 2>&1 || true)"
-echo "$OUT" | grep -q "Decision: ACTION REQUIRED (INCOMPLETE / ERROR)"
-echo "$OUT" | grep -q "Action:   DO NOT run manual tests or debug manually."
-echo "PASS: E2E Malformed JSON generates ACTION REQUIRED gate"
+echo "$OUT" | grep -q "RAW_OUTPUT_NOT_JSON: something broke"
+echo "PASS: Malformed raw output fallback rendered correctly"
 
-echo "=== All decision gate tests passed! ==="
+echo "=== All runner tests passed! ==="

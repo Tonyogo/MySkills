@@ -1,20 +1,25 @@
 ---
 name: agy-goal
-description: Execute an implementation plan or continue/fix tasks using AGY CLI (/goal and continue).
+description: Use when executing an implementation plan or iterating/fixing tasks via AGY CLI (/goal and continue).
 ---
 
 # agy-goal
 
-Execute and iterate on implementation plans using **AGY CLI** (`/goal` and `continue`) with a fast, zero-thrashing decision gate.
+Execute and iterate on implementation plans using **AGY CLI** (`/goal` and `continue`) with agent-driven semantic verification and strict anti-thrashing circuit breakers.
 
 ## Role Definition & Principles
 
-- **Host Agent (Orchestrator)**: Dispatches `agy-goal.sh`, reads the resulting `[DECISION GATE]`, and makes an immediate 1-turn binary decision: declare completion or invoke `continue`.
-- **AGY CLI (Worker)**: Autonomous implementation agent. Reads the plan, edits code, runs project tests internally, and fixes failures.
+- **Host Agent (Orchestrator & Reviewer)**:
+  - Dispatches `agy-goal.sh`.
+  - Performs **semantic verification** by reading the execution log and reviewing Git changes.
+  - Decides whether the goal is achieved or requires `continue`.
+  - Enforces the hard iteration limit and escalates to the user when stuck.
+- **AGY CLI (Autonomous Worker)**:
+  - Reads the plan, writes code, runs project tests internally, and debugs failures autonomously.
 
 ### 🚫 Strict Negative Constraints
-- **DO NOT run manual test commands**: Never execute `npm test`, `pytest`, `go test`, `cargo test`, or custom test scripts directly. AGY executes and verifies tests internally.
-- **DO NOT manually debug or patch code**: Never open failing source files to debug or write manual fixes. If an issue is reported, summarize it in 1–2 sentences and hand it back to AGY via `continue`.
+- **DO NOT run manual test commands**: Never execute `npm test`, `pytest`, `go test`, `cargo test`, or custom test scripts. All testing is handled autonomously inside AGY.
+- **DO NOT manually debug or patch code**: Never open failing source files to debug or write manual fixes. All adjustments must be delegated back to AGY via `continue`.
 
 ---
 
@@ -43,33 +48,43 @@ agy-goal.sh continue "Fix test failure in user_spec: assertion failed at line 42
 
 ---
 
-## Fast Decision Gate Workflow
+## Agent Verification Protocol (1-Turn Decision)
 
-Every time `agy-goal.sh` finishes, inspect the `[DECISION GATE]` block at the end of output:
+After `agy-goal.sh` finishes, the host agent evaluates two primary sources of truth:
+1. **AGY Response Summary**: Check whether all tasks in the plan are explicitly declared completed, or if any tasks remain unfinished, timed out, or threw errors.
+2. **Git Changes (`git status`, `git diff --stat`, `git log -n 1`)**: Confirm that actual code changes/commits exist and match the scope of the plan.
 
-### Case A: `READY FOR COMPLETION`
-- Check `git status` and `git diff` to confirm changes are clean and match the plan.
-- Announce completion to the user and suggest commit/push steps.
-- **Do NOT run any additional tests.**
+### Decision Gate:
 
-### Case B: `ACTION REQUIRED (INCOMPLETE / ERROR)`
-- Extract a 1–2 sentence summary of the missing tasks or error from the AGY response.
-- Immediately run:
-  ```bash
-  agy-goal.sh continue "<1-2 sentence issue summary>"
-  ```
-- **Do NOT attempt to diagnose or fix the error yourself.**
+- **Case A: Goal Achieved (PASS)**
+  - All tasks in the plan are implemented and confirmed by AGY.
+  - Git changes and commits match the expected scope.
+  - **Action**: Declare task completion, summarize the completed work and Git commits, and guide the user on next steps (Commit/Push/PR).
+  - **🚫 Rule**: Do NOT run any additional tests.
+
+- **Case B: Incomplete, Error, or Scope Miss (ITERATE)**
+  - Unfinished tasks remain, tests failed, or code changes are missing.
+  - **Action**: Extract a 1–2 sentence summary of the exact blocker or unfinished task, and immediately run:
+    ```bash
+    agy-goal.sh continue "<1-2 sentence issue summary>"
+    ```
+  - **🚫 Rule**: Do NOT attempt to fix code manually.
 
 ---
 
-## 🛑 Hard Stop & Circuit Breaker
+## 🛑 Circuit Breaker & Mandatory User Escalation
 
-You must **STOP** immediately and escalate to the user if:
-1. **Round Limit Exceeded**: You have run `continue` **3 times** and the plan is still not completed.
-2. **Identical Error Loop**: The exact same error or test failure persists across **2 consecutive turns**.
-3. **Scope Creep / Degradation**: AGY starts modifying unrelated files or introducing new regressions.
+To prevent infinite loops, token waste, and agent thrashing, you must enforce strict stopping criteria:
 
-**When stopped, report to the user immediately:**
-1. Tasks completed successfully so far.
-2. The exact blocking error or reason for failure.
-3. Proposed options/suggestions, and ask the user how to proceed.
+### 1. Stopping Red Lines
+- **Maximum 3 Continue Turns**: You may invoke `continue` at most **3 times** per plan. If the plan is still not completed after round 3, you must STOP immediately. Never initiate a 4th turn.
+- **Identical Error / Stagnation Loop**: If the exact same error persists across **2 consecutive turns**, or if Git diff shows zero forward progress, you must STOP immediately.
+- **Scope Creep / Degradation**: If AGY modifies completely unrelated directories or introduces regressions, you must STOP immediately.
+
+### 2. Mandatory Human Escalation
+When a stop condition is triggered, you are **STRICTLY PROHIBITED** from continuing automated execution or trying to fix it yourself. You must immediately report to the user:
+
+1. **Completed Tasks**: What was completed and committed successfully so far.
+2. **Current Blocker**: The exact error message, failing test, or incomplete task.
+3. **Reason for Stopping**: (e.g., *"Reached maximum 3 continue attempts"* or *"Identical failure across 2 consecutive turns"*).
+4. **Options for User Decision**: Present 2–3 actionable choices and ask the human partner how to proceed (e.g., provide manual guidance, pause for manual inspection, or adjust plan scope).

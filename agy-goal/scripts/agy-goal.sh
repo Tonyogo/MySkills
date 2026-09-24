@@ -100,9 +100,6 @@ AGY_EXIT=0
 python3 -c '
 import json, sys
 
-exit_code = int(sys.argv[2])
-is_completed = False
-
 try:
     with open(sys.argv[1]) as f:
         data = json.load(f)
@@ -116,8 +113,6 @@ try:
     print(f"Duration:        {duration:.1f}s")
     print("=" * 60 + "\n")
     print(data.get("response", "").strip())
-    
-    is_completed = (exit_code == 0 and status == "COMPLETED")
 except Exception:
     try:
         with open(sys.argv[1]) as f:
@@ -126,19 +121,7 @@ except Exception:
                 print(raw)
     except Exception:
         pass
-    is_completed = False
-
-print("\n==================== DECISION GATE ====================")
-if is_completed:
-    print("Decision: READY FOR COMPLETION")
-    print("Action:   Plan executed successfully by AGY.")
-    print("Next:     Review git diff, then commit and report completion to user.")
-else:
-    print("Decision: ACTION REQUIRED (INCOMPLETE / ERROR)")
-    print("Action:   DO NOT run manual tests or debug manually.")
-    print("Next:     Run: agy-goal.sh continue \"<1-2 sentence issue summary>\"")
-print("=======================================================\n")
-' "$TMP_OUT" "$AGY_EXIT"
+' "$TMP_OUT"
 
 # Post-Execution Git Summary & Next Steps
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
