@@ -50,9 +50,9 @@ agy-goal.sh continue "Fix test failure in user_spec: assertion failed at line 42
 
 ## Agent Verification Protocol (1-Turn Decision)
 
-After `agy-goal.sh` finishes, the host agent evaluates two primary sources of truth:
+The script formats and prints AGY's execution response (Status, Conversation ID, Duration, and Response body). After execution completes, the host agent evaluates two primary sources of truth:
 1. **AGY Response Summary**: Check whether all tasks in the plan are explicitly declared completed, or if any tasks remain unfinished, timed out, or threw errors.
-2. **Git Changes (`git status`, `git diff --stat`, `git log -n 1`)**: Confirm that actual code changes/commits exist and match the scope of the plan.
+2. **Git Changes (Inspected by Host Agent via `git status`, `git diff --stat`, or `git log -n 1`)**: Confirm that actual code changes/commits exist and match the scope of the plan.
 
 ### Decision Gate:
 

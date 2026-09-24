@@ -123,32 +123,4 @@ except Exception:
         pass
 ' "$TMP_OUT"
 
-# Post-Execution Git Summary & Next Steps
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  echo -e "\n================ Git Status ================"
-  git status --short
-  echo -e "\n================ Git Diff Stat ============="
-  git diff --stat
-
-  CURRENT_BRANCH="$(git branch --show-current 2>/dev/null || echo "")"
-  HAS_UNCOMMITTED="$(git status --porcelain 2>/dev/null || true)"
-
-  echo -e "\n================ Suggested Next Steps ================"
-  [ -n "$CURRENT_BRANCH" ] && echo "Current Branch: $CURRENT_BRANCH"
-
-  if [ -n "$HAS_UNCOMMITTED" ]; then
-    echo "1. Commit changes:   git add -A && git commit -m \"feat: <description>\""
-  else
-    echo "1. Working tree:     clean (all changes committed)"
-  fi
-
-  if [ -n "$CURRENT_BRANCH" ] && [ "$CURRENT_BRANCH" != "main" ] && [ "$CURRENT_BRANCH" != "master" ]; then
-    echo "2. Push to remote:   git push -u origin $CURRENT_BRANCH"
-    echo "3. Merge to main:    git checkout main && git merge $CURRENT_BRANCH"
-  else
-    echo "2. Push to remote:   git push"
-  fi
-  echo -e "======================================================\n"
-fi
-
 exit "$AGY_EXIT"
