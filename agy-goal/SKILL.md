@@ -28,7 +28,7 @@ Execute and iterate on implementation plans using **AGY CLI** (`/goal` and `cont
 Run the runner script from `./agy-goal/scripts/agy-goal.sh` (or your configured skills path).
 
 > [!NOTE]
-> 单次任务超时时间固定为 **20 分钟**。
+> Execution timeout is fixed at **20 minutes**.
 
 ### 1. Implement Plan
 Start executing a written markdown plan:
