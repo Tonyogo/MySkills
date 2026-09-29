@@ -58,7 +58,12 @@ class WorkAPI:
         if isinstance(executor, RemoteExecutor):
             executor.push_initial_branch()
 
-        prompt = f"/goal Implement Plan @{plan_file}"
+        try:
+            rel_plan = plan_file.relative_to(self.workspace_root)
+        except ValueError:
+            rel_plan = plan_file
+
+        prompt = f"/goal Implement Plan @{rel_plan}"
         return self._run_and_handle(executor, state, prompt, is_continue=False)
 
     def continue_plan(self, instructions: str = "") -> int:

@@ -2,7 +2,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from agy_goal.executors.base import BaseExecutor
+from agy_goal.executors.base import BaseExecutor, parse_timeout_seconds
 from agy_goal.core.result_parser import parse_agy_output, ExecutionResult
 
 class LocalExecutor(BaseExecutor):
@@ -25,12 +25,15 @@ class LocalExecutor(BaseExecutor):
             cmd.append("-c")
         cmd.extend(["-p", prompt])
 
+        timeout_sec = parse_timeout_seconds(self.timeout)
+
         try:
             proc = subprocess.run(
                 cmd,
                 cwd=str(self.workspace_root),
                 capture_output=True,
                 text=True,
+                timeout=timeout_sec,
             )
             raw = proc.stdout if proc.stdout else proc.stderr
             res = parse_agy_output(raw, exit_code=proc.returncode)

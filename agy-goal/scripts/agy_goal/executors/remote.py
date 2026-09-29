@@ -2,10 +2,12 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from agy_goal.executors.base import BaseExecutor
+from agy_goal.executors.base import BaseExecutor, parse_timeout_seconds
 from agy_goal.core.result_parser import parse_agy_output, ExecutionResult
 
 class RemoteExecutor(BaseExecutor):
+    DIFF_DELIMITER = "---AGY_GIT_DIFF---"
+
     def __init__(self, workspace_root: Path, target: str, branch: str, timeout: str = "20m"):
         self.workspace_root = workspace_root
         self.target = target
@@ -52,24 +54,47 @@ agy --mode accept-edits --print-timeout {self.timeout} --output-format json {c_f
 AGY_EXIT=$?
 set -e
 git add -A
+DIFF_SUMMARY=""
 if ! git diff-index --quiet HEAD -- 2>/dev/null; then
     git commit -m "feat(agy-remote): update code via agy"
     git push origin {self.branch}
+    DIFF_SUMMARY=$(git diff --stat HEAD~1 2>/dev/null || true)
 fi
 cat /tmp/agy_out.json
+echo "{self.DIFF_DELIMITER}"
+echo "$DIFF_SUMMARY"
 exit $AGY_EXIT
 """.strip()
 
         cmd = ["gt", "exec", self.target, "bash", "-c", remote_script]
+        timeout_sec = parse_timeout_seconds(self.timeout)
+
         try:
             proc = subprocess.run(
                 cmd,
                 cwd=str(self.workspace_root),
                 capture_output=True,
                 text=True,
+                timeout=timeout_sec,
             )
             raw = proc.stdout if proc.stdout else proc.stderr
-            return parse_agy_output(raw, exit_code=proc.returncode)
+            diff_summary = ""
+            if self.DIFF_DELIMITER in (raw or ""):
+                json_part, _, diff_summary = raw.partition(self.DIFF_DELIMITER)
+                raw = json_part
+                diff_summary = diff_summary.strip()
+            res = parse_agy_output(raw, exit_code=proc.returncode)
+            res.git_diff_summary = diff_summary
+            return res
+        except subprocess.TimeoutExpired:
+            return ExecutionResult(
+                status="TIMEOUT",
+                conversation_id="",
+                duration_seconds=0.0,
+                raw_response="Remote agy execution timed out.",
+                goal_complete=False,
+                error_message="Remote agy execution timed out.",
+            )
         except Exception as e:
             return ExecutionResult(
                 status="ERROR",

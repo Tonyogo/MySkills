@@ -45,3 +45,14 @@ class TestLocalExecutor(unittest.TestCase):
         self.assertEqual(res.status, "SUCCESS")
         self.assertTrue(res.goal_complete)
         self.assertEqual(res.conversation_id, "c1")
+
+    def test_local_execute_timeout(self):
+        agy_bin = self.bin_dir / "agy"
+        with open(agy_bin, "w") as f:
+            f.write("#!/usr/bin/env bash\nsleep 2\nexit 0\n")
+        agy_bin.chmod(agy_bin.stat().st_mode | stat.S_IEXEC)
+        executor = LocalExecutor(self.workspace, timeout="1s")
+        res = executor.execute("Implement plan")
+        self.assertEqual(res.status, "TIMEOUT")
+        self.assertIn("timed out", res.error_message.lower())
+

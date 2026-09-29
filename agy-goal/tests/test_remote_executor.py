@@ -50,3 +50,23 @@ class TestRemoteExecutor(unittest.TestCase):
         self.assertEqual(res.status, "SUCCESS")
         self.assertTrue(res.goal_complete)
         self.assertEqual(res.conversation_id, "r1")
+
+    def test_remote_execute_extracts_git_diff_summary(self):
+        mock_payload = '{"conversation_id":"r2","status":"SUCCESS","duration_seconds":2.0,"response":"Remote Done\\n<!-- GOAL_COMPLETE -->"}\n---AGY_GIT_DIFF---\n foo.py | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)'
+        self._create_mock_gt(mock_payload, exit_code=0)
+        executor = RemoteExecutor(self.workspace, target="server-1", branch="feat/foo")
+        executor.preflight_check()
+        res = executor.execute("Implement plan", is_continue=False)
+        self.assertEqual(res.status, "SUCCESS")
+        self.assertIn("1 file changed", res.git_diff_summary)
+
+    def test_remote_execute_timeout(self):
+        gt_bin = self.bin_dir / "gt"
+        with open(gt_bin, "w") as f:
+            f.write("#!/usr/bin/env bash\nsleep 2\nexit 0\n")
+        gt_bin.chmod(gt_bin.stat().st_mode | stat.S_IEXEC)
+        executor = RemoteExecutor(self.workspace, target="server-1", branch="feat/foo", timeout="1s")
+        res = executor.execute("Implement plan")
+        self.assertEqual(res.status, "TIMEOUT")
+        self.assertIn("timed out", res.error_message.lower())
+
