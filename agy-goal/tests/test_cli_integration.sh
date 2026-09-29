@@ -3,16 +3,16 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BIN="$SCRIPT_DIR/scripts/agy-goal.sh"
+BIN="$SCRIPT_DIR/scripts/agy-goal.py"
 
 echo "=== Test 1: CLI Help output ==="
-"$BIN" -h | grep -q "usage:" || "$BIN" -h | grep -q "Usage:"
+"$BIN" -h | grep -q "usage:"
 "$BIN" --help | grep -q "agy-goal"
 echo "PASS: Help output"
 
 echo "=== Test 2: Missing arguments ==="
 OUTPUT="$("$BIN" 2>&1 || true)"
-echo "$OUTPUT" | grep -qi "usage:"
+echo "$OUTPUT" | grep -q "usage:"
 echo "PASS: Missing arguments handled"
 
 echo "=== Test 3: Plan file validation ==="

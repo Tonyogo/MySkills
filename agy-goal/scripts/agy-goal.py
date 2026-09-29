@@ -564,31 +564,35 @@ class WorkAPI:
         }
 
 
+USAGE_HELP = """usage: agy-goal.py [-h] [--remote REMOTE] {continue,status,sync,reset} ... [plan]
+
+Usage:
+  agy-goal.py <path/to/plan.md> [--remote <target>]   Implement a plan file via /goal
+  agy-goal.py continue [instructions...]               Continue plan implementation or supply feedback
+  agy-goal.py status                                   Show active session status
+  agy-goal.py sync                                     Synchronize remote changes to local workspace
+  agy-goal.py reset                                    Clear active session state
+  agy-goal.py -h, --help                               Show this help message
+"""
+
+
 def main():
-    parser = argparse.ArgumentParser(
-        description="agy-goal: Multi-turn runner for AGY plan execution (Local & Remote)",
-        add_help=True,
-    )
-    subparsers = parser.add_subparsers(dest="command")
+    if len(sys.argv) < 2:
+        print(USAGE_HELP, file=sys.stderr)
+        sys.exit(1)
 
-    cont_parser = subparsers.add_parser("continue", help="Continue plan implementation or supply feedback")
-    cont_parser.add_argument("instructions", nargs="*", help="Optional feedback instructions")
+    first_arg = sys.argv[1]
+    if first_arg in ("-h", "--help", "help"):
+        print(USAGE_HELP)
+        sys.exit(0)
 
-    subparsers.add_parser("status", help="Show active session status")
-    subparsers.add_parser("sync", help="Synchronize remote changes to local workspace")
-    subparsers.add_parser("reset", help="Clear active session state")
-
-    parser.add_argument("plan", nargs="?", help="Path to implementation plan markdown file")
-    parser.add_argument("--remote", help="Remote target ID/node for gt exec")
-
-    args = parser.parse_args()
     api = WorkAPI()
 
     try:
-        if args.command == "continue":
-            instructions = " ".join(args.instructions) if args.instructions else ""
+        if first_arg == "continue":
+            instructions = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else ""
             sys.exit(api.continue_plan(instructions))
-        elif args.command == "status":
+        elif first_arg == "status":
             st = api.get_status()
             print("Active:          ", st["active"])
             print("Mode:            ", st["mode"])
@@ -599,17 +603,22 @@ def main():
             if st["conversation_id"]:
                 print("Conversation ID: ", st["conversation_id"])
             sys.exit(0)
-        elif args.command == "sync":
+        elif first_arg == "sync":
             api.sync()
             sys.exit(0)
-        elif args.command == "reset":
+        elif first_arg == "reset":
             api.reset()
             sys.exit(0)
-        elif args.plan:
-            sys.exit(api.start_plan(args.plan, remote_target=args.remote))
         else:
-            parser.print_help()
-            sys.exit(1)
+            plan_parser = argparse.ArgumentParser(
+                prog="agy-goal.py",
+                description="agy-goal: Multi-turn runner for AGY plan execution (Local & Remote)",
+                add_help=True,
+            )
+            plan_parser.add_argument("plan", help="Path to implementation plan markdown file")
+            plan_parser.add_argument("--remote", help="Remote target ID/node for gt exec")
+            args = plan_parser.parse_args(sys.argv[1:])
+            sys.exit(api.start_plan(args.plan, remote_target=args.remote))
     except Exception as e:
         print(str(e), file=sys.stderr)
         sys.exit(1)

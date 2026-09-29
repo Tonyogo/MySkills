@@ -2,11 +2,11 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BIN="$SCRIPT_DIR/scripts/agy-goal.sh"
+BIN="$SCRIPT_DIR/scripts/agy-goal.py"
 
 echo "=== Test 1: CLI Help output ==="
 "$BIN" -h | grep -q "Usage:"
-"$BIN" --help | grep -q "agy-goal.sh <path/to/plan.md>"
+"$BIN" --help | grep -q "agy-goal.py <path/to/plan.md>"
 echo "PASS: Help output"
 
 echo "=== Test 2: Missing arguments ==="
