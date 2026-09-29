@@ -16,7 +16,7 @@ echo "PASS: Missing arguments handled"
 
 echo "=== Test 3: Plan file validation ==="
 OUTPUT="$("$BIN" nonexistent_plan_file_12345.md 2>&1 || true)"
-echo "$OUTPUT" | grep -q "Error: Unknown command or plan file not found"
+echo "$OUTPUT" | grep -q "Error: Plan file not found"
 echo "PASS: Plan file validation handled"
 
 # Setup temporary mock agy environment for E2E tests
