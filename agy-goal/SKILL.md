@@ -1,25 +1,27 @@
 ---
 name: agy-goal
-description: Use when executing an implementation plan or iterating/fixing tasks via AGY CLI (/goal and continue).
+description: Use when executing an implementation plan or iterating/fixing tasks via AGY CLI (/goal and continue), locally or remotely.
 ---
 
 # agy-goal
 
-Execute and iterate on implementation plans using **AGY CLI** (`/goal` and `continue`) with agent-driven semantic verification and strict anti-thrashing circuit breakers.
+Execute and iterate on implementation plans using the **AGY CLI** (`/goal` and `continue`) with autonomous local or remote execution, closed-loop remote verification, and strict anti-thrashing circuit breakers.
 
-## Role Definition & Principles
+## Architecture & Role Definition
 
-- **Host Agent (Orchestrator & Reviewer)**:
+- **Host Agent (Orchestrator & Verifier)**:
   - Dispatches `agy-goal.sh`.
-  - Performs **semantic verification** by reading the execution log and reviewing Git changes.
-  - Decides whether the goal is achieved or requires `continue`.
-  - Enforces the hard iteration limit and escalates to the user when stuck.
+  - Performs semantic verification from AGY execution summaries and Git diffs.
+  - Automatically recovers session context on `continue`.
+  - Enforces hard iteration limits and halts execution upon circuit breaker triggers.
 - **AGY CLI (Autonomous Worker)**:
-  - Reads the plan, writes code, runs project tests internally, and debugs failures autonomously.
+  - **Local Mode**: Executes directly in the local workspace via local `agy`.
+  - **Remote Mode (`--remote <target>` or `AGY_TARGET`)**: Pushes initial branch to origin, runs autonomous execution, testing, and commits closed-loop on the remote host via `gt exec`, and synchronizes back to local only upon goal completion or circuit breaker halt (zero noise during intermediate turns).
 
 ### 🚫 Strict Negative Constraints
 - **DO NOT run manual test commands**: Never execute `npm test`, `pytest`, `go test`, `cargo test`, or custom test scripts. All testing is handled autonomously inside AGY.
 - **DO NOT manually debug or patch code**: Never open failing source files to debug or write manual fixes. All adjustments must be delegated back to AGY via `continue`.
+- **DO NOT execute remote runs on `main` or `master`**: Always create or switch to a feature branch before dispatching remote runs.
 
 ---
 
@@ -30,14 +32,29 @@ Run the runner script from `./agy-goal/scripts/agy-goal.sh` (or your configured 
 > [!NOTE]
 > Execution timeout is fixed at **20 minutes**.
 
-### 1. Implement Plan
-Start executing a written markdown plan:
+### 1. Implement Plan (Local)
+Start executing a written markdown plan on the local machine:
 ```bash
 agy-goal.sh path/to/plan.md
 ```
 
-### 2. Continue Plan Execution (`continue`)
-Continue the plan to finish remaining tasks or supply targeted feedback:
+### 2. Implement Plan (Remote via `gt exec`)
+Execute on a remote compute target using `--remote` or the `AGY_TARGET` environment variable:
+```bash
+# Option A: Command-line flag
+agy-goal.sh path/to/plan.md --remote my-worker-node
+
+# Option B: Environment variable
+export AGY_TARGET=my-worker-node
+agy-goal.sh path/to/plan.md
+```
+During remote runs:
+- Initial plan and workspace changes are committed and pushed to `origin/<branch>`.
+- AGY execution, intermediate edits, tests, and commits happen entirely on the remote host.
+- Local repository remains clean and pulls (`git pull`) only when `GOAL_COMPLETE` is achieved or if execution halts.
+
+### 3. Continue Plan Execution (`continue`)
+Continue the active plan session to finish remaining tasks or supply targeted feedback. Target mode and conversation context are automatically loaded from state:
 ```bash
 # Continue without extra instructions:
 agy-goal.sh continue
@@ -46,16 +63,28 @@ agy-goal.sh continue
 agy-goal.sh continue "Fix test failure in user_spec: assertion failed at line 42"
 ```
 
+### 4. Utilities
+```bash
+# Check current session mode, branch, round count, and status
+agy-goal.sh status
+
+# Explicitly pull latest remote changes to local workspace
+agy-goal.sh sync
+
+# Clear active session state
+agy-goal.sh reset
+```
+
 ---
 
 ## Agent Verification Protocol (1-Turn Decision)
 
-The script formats and prints AGY's execution response (Status, Conversation ID, Duration, `Goal Complete` marker, and Response body). After execution completes, the host agent evaluates two primary sources of truth:
+The runner outputs AGY's execution response (Status, Conversation ID, Duration, `Goal Complete` marker, and Response body). After execution completes, evaluate two primary sources of truth:
 
 1. **`Goal Complete` Marker & Response Summary**:
-   - **Fast-Path Check**: Check if `Goal Complete: YES` (AGY explicitly printed `<!-- GOAL_COMPLETE -->`). This is the deterministic handshake indicating AGY completed all planned tasks and tests.
-   - If `Goal Complete: NO`, check the response summary for incomplete tasks, timeouts, or error messages.
-2. **Git Changes (Inspected via `git status`, `git diff --stat`, or `git log -n 1`)**:
+   - **Fast-Path Check**: Check if `Goal Complete: YES` (AGY explicitly emitted `<!-- GOAL_COMPLETE -->`). This is the deterministic handshake indicating AGY completed all planned tasks and tests.
+   - If `Goal Complete: NO`, inspect the response summary for incomplete tasks, timeouts, or error messages.
+2. **Git Changes (`git status`, `git diff --stat`, or `git log -n 1`)**:
    - Confirm that actual code changes and commits exist and align with the plan.
 
 ### Decision Gate:
@@ -75,19 +104,17 @@ The script formats and prints AGY's execution response (Status, Conversation ID,
 
 ---
 
-## 🛑 Circuit Breaker & Mandatory User Escalation
+## 🛑 Circuit Breaker & Mandatory Escalation
 
-To prevent infinite loops, token waste, and agent thrashing, you must enforce strict stopping criteria:
+To prevent infinite loops, token waste, and agent thrashing, the core engine enforces built-in circuit breaker rules:
 
 ### 1. Stopping Red Lines
-- **Maximum 3 Continue Turns**: You may invoke `continue` at most **3 times** per plan. If the plan is still not completed after round 3, you must STOP immediately. Never initiate a 4th turn.
-- **Identical Error / Stagnation Loop**: If the exact same error persists across **2 consecutive turns**, or if Git diff shows zero forward progress, you must STOP immediately.
-- **Scope Creep / Degradation**: If AGY modifies completely unrelated directories or introduces regressions, you must STOP immediately.
+- **Maximum 3 Continue Turns**: You may invoke `continue` at most **3 times** per session. Reaching round 3 halts execution with status code 10.
+- **Identical Error / Stagnation Loop**: If the SHA-256 signature of failing test/error messages matches across **2 consecutive turns**, execution halts immediately.
+- **Production Branch Guard**: Remote execution on `main` or `master` is rejected before any remote commands run.
 
-### 2. Mandatory Human Escalation
-When a stop condition is triggered, you are **STRICTLY PROHIBITED** from continuing automated execution or trying to fix it yourself. You must immediately report to the user:
-
-1. **Completed Tasks**: What was completed and committed successfully so far.
-2. **Current Blocker**: The exact error message, failing test, or incomplete task.
-3. **Reason for Stopping**: (e.g., *"Reached maximum 3 continue attempts"* or *"Identical failure across 2 consecutive turns"*).
-4. **Options for User Decision**: Present 2–3 actionable choices and ask the human partner how to proceed (e.g., provide manual guidance, pause for manual inspection, or adjust plan scope).
+### 2. Escalation Behavior
+When the circuit breaker triggers:
+- Any remote changes are automatically pulled locally (`sync_to_local()`) to facilitate inspection.
+- A formatted `[CIRCUIT BREAKER TRIGGERED - EXECUTION HALTED]` report is printed with the blocker summary.
+- The agent must **NOT** continue automated execution. Report the findings to the human partner with actionable options.
