@@ -10,7 +10,7 @@ Execute and iterate on implementation plans using the **AGY CLI** (`/goal` and `
 ## Architecture & Role Definition
 
 - **Host Agent (Orchestrator & Verifier)**:
-  - Dispatches `agy-goal.sh`.
+  - Dispatches `agy-goal.py`.
   - Performs semantic verification from AGY execution summaries and Git diffs.
   - Automatically recovers session context on `continue`.
   - Enforces hard iteration limits and halts execution upon circuit breaker triggers.
@@ -27,7 +27,7 @@ Execute and iterate on implementation plans using the **AGY CLI** (`/goal` and `
 
 ## Commands
 
-Run the runner script from `./agy-goal/scripts/agy-goal.sh` (or your configured skills path).
+Run the runner script from `./agy-goal/scripts/agy-goal.py` (or your configured skills path).
 
 > [!NOTE]
 > Execution timeout is fixed at **20 minutes**.
@@ -35,18 +35,18 @@ Run the runner script from `./agy-goal/scripts/agy-goal.sh` (or your configured 
 ### 1. Implement Plan (Local)
 Start executing a written markdown plan on the local machine:
 ```bash
-agy-goal.sh path/to/plan.md
+agy-goal.py path/to/plan.md
 ```
 
 ### 2. Implement Plan (Remote via `gt exec`)
 Execute on a remote compute target using `--remote` or the `AGY_TARGET` environment variable:
 ```bash
 # Option A: Command-line flag
-agy-goal.sh path/to/plan.md --remote my-worker-node
+agy-goal.py path/to/plan.md --remote my-worker-node
 
 # Option B: Environment variable
 export AGY_TARGET=my-worker-node
-agy-goal.sh path/to/plan.md
+agy-goal.py path/to/plan.md
 ```
 During remote runs:
 - Initial plan and workspace changes are committed and pushed to `origin/<branch>`.
@@ -57,22 +57,22 @@ During remote runs:
 Continue the active plan session to finish remaining tasks or supply targeted feedback. Target mode and conversation context are automatically loaded from state:
 ```bash
 # Continue without extra instructions:
-agy-goal.sh continue
+agy-goal.py continue
 
 # Continue with targeted feedback (1-2 sentences):
-agy-goal.sh continue "Fix test failure in user_spec: assertion failed at line 42"
+agy-goal.py continue "Fix test failure in user_spec: assertion failed at line 42"
 ```
 
 ### 4. Utilities
 ```bash
 # Check current session mode, branch, round count, and status
-agy-goal.sh status
+agy-goal.py status
 
 # Explicitly pull latest remote changes to local workspace
-agy-goal.sh sync
+agy-goal.py sync
 
 # Clear active session state
-agy-goal.sh reset
+agy-goal.py reset
 ```
 
 ---
@@ -98,7 +98,7 @@ The runner outputs AGY's execution response (Status, Conversation ID, Duration, 
   - `Goal Complete: NO`, unfinished tasks remain, tests failed, or expected code changes are absent.
   - **Action**: Extract a 1–2 sentence summary of the exact blocker or unfinished task, and immediately run:
     ```bash
-    agy-goal.sh continue "<1-2 sentence issue summary>. Finish remaining tasks until <!-- GOAL_COMPLETE --> is reached."
+    agy-goal.py continue "<1-2 sentence issue summary>. Finish remaining tasks until <!-- GOAL_COMPLETE --> is reached."
     ```
   - **🚫 Rule**: Do NOT attempt to fix code manually.
 
