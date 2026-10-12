@@ -14,7 +14,7 @@
 
 - Pure Python 3.8+ standard library implementation; no third-party package dependencies (zero `pip install`).
 - Remote execution must keep intermediate iterations and testing closed-loop on the remote host via `gt exec`; local `git pull` happens only when `GOAL_COMPLETE` is achieved or when circuit breaker halts.
-- Default execution timeout is 20 minutes (`20m` / 1200 seconds).
+- Default execution timeout is 30 minutes (`30m` / 1800 seconds).
 - Execution on `main` or `master` branch is strictly rejected for remote runs.
 - Hard circuit breaker: Maximum 3 `continue` turns per session; identical error hashes across 2 consecutive turns halts execution.
 - All tests must run cleanly via `python3 -m unittest` without requiring external test frameworks.
@@ -538,7 +538,7 @@ git commit -m "feat(agy-goal): implement anti-thrashing circuit breaker"
       def sync_to_local(self) -> None
 
   class LocalExecutor(BaseExecutor):
-      def __init__(self, workspace_root: Path, timeout: str = "20m")
+      def __init__(self, workspace_root: Path, timeout: str = "30m")
   ```
 
 - [ ] **Step 1: Write failing tests for LocalExecutor**
@@ -633,7 +633,7 @@ from agy_goal.executors.base import BaseExecutor
 from agy_goal.core.result_parser import parse_agy_output, ExecutionResult
 
 class LocalExecutor(BaseExecutor):
-    def __init__(self, workspace_root: Path, timeout: str = "20m"):
+    def __init__(self, workspace_root: Path, timeout: str = "30m"):
         self.workspace_root = workspace_root
         self.timeout = timeout
 
@@ -724,7 +724,7 @@ git commit -m "feat(agy-goal): implement BaseExecutor interface and LocalExecuto
 - Produces:
   ```python
   class RemoteExecutor(BaseExecutor):
-      def __init__(self, workspace_root: Path, target: str, branch: str, timeout: str = "20m")
+      def __init__(self, workspace_root: Path, target: str, branch: str, timeout: str = "30m")
   ```
 
 - [ ] **Step 1: Write failing tests for RemoteExecutor**
@@ -803,7 +803,7 @@ from agy_goal.executors.base import BaseExecutor
 from agy_goal.core.result_parser import parse_agy_output, ExecutionResult
 
 class RemoteExecutor(BaseExecutor):
-    def __init__(self, workspace_root: Path, target: str, branch: str, timeout: str = "20m"):
+    def __init__(self, workspace_root: Path, target: str, branch: str, timeout: str = "30m"):
         self.workspace_root = workspace_root
         self.target = target
         self.branch = branch
@@ -978,7 +978,7 @@ from agy_goal.executors.local import LocalExecutor
 from agy_goal.executors.remote import RemoteExecutor
 
 class WorkAPI:
-    def __init__(self, workspace_root: Optional[Path] = None, timeout: str = "20m"):
+    def __init__(self, workspace_root: Optional[Path] = None, timeout: str = "30m"):
         self.workspace_root = workspace_root or Path.cwd()
         self.timeout = timeout
         self.state_store = StateStore(self.workspace_root)

@@ -2,7 +2,7 @@
 # ==============================================================================
 # agy-goal.sh - Multi-turn runner for AGY plan execution
 #
-# Execution Timeout: 20m
+# Execution Timeout: 30m
 #
 # Commands:
 #   <plan.md>                    - Execute implementation plan via /goal
@@ -11,7 +11,7 @@
 
 set -uo pipefail
 
-TIMEOUT="20m"
+TIMEOUT="30m"
 
 show_help() {
   cat <<'EOF'
@@ -21,7 +21,7 @@ Usage:
   agy-goal.sh -h, --help                      Show this help message
 
 Notes:
-  - Execution timeout is set to 20 minutes.
+  - Execution timeout is set to 30 minutes.
 EOF
 }
 

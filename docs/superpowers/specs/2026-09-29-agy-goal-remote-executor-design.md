@@ -123,7 +123,7 @@ class BaseExecutor(ABC):
 ```
 
 ### 3.2 Local Worker (`executors/local.py`)
-- **Execution Mechanism**: Directly runs `agy --mode accept-edits --print-timeout 20m --output-format json [-c] -p <prompt>` locally.
+- **Execution Mechanism**: Directly runs `agy --mode accept-edits --print-timeout 30m --output-format json [-c] -p <prompt>` locally.
 - **Git Inspection**: Runs local `git status --short` and `git diff --stat`.
 - **Sync**: No-op (local workspace is already the execution target).
 
@@ -137,7 +137,7 @@ class BaseExecutor(ABC):
 - **Remote Execution & Closed-Loop Verification (`gt exec`)**:
   - Remote shell payload performs:
     1. Pull branch inside remote workspace: `git fetch origin <branch> && git checkout <branch> && git pull origin <branch>`.
-    2. Run AGY: `agy --mode accept-edits --print-timeout 20m --output-format json [-c] -p <prompt>`.
+    2. Run AGY: `agy --mode accept-edits --print-timeout 30m --output-format json [-c] -p <prompt>`.
     3. Commit changes remotely: `git add -A && git commit -m "feat(agy-remote): update code via agy" && git push origin <branch>`.
     4. Extract `git diff --stat HEAD~1` and response JSON into a composite structured response.
 - **Sync to Local (`sync_to_local`)**:
